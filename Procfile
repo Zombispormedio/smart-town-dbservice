@@ -1,1 +1,1 @@
-"web:smart-town-db" 
+web: go-getting-started
