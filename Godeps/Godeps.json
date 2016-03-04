@@ -1,0 +1,5 @@
+{
+	"ImportPath": "dbservice",
+	"GoVersion": "go1.6",
+	"Deps": []
+}
