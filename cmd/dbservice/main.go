@@ -3,10 +3,11 @@ import (
   "log"
   "fmt"
   "net/http"
+  "os"
  
 )
 func determineListenAddress() (string, error) {
-  port := "5060"
+  port := os.Getenv("PORT")
   if port == "" {
     return "", fmt.Errorf("$PORT not set")
   }
