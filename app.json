@@ -1,0 +1,13 @@
+{
+  "name": "smart-town-db",
+  "description": "DB Service",
+  "keywords": [
+    "go",
+    "mongodb",
+    "example"
+  ],
+  "image": "heroku/go:1.6",
+  "mount_dir": "src/smart-town/service/db",
+  "website": "https://github.com/Zombispormedio/smart-town-dbservice",
+  "repository": "https://github.com/Zombispormedio/smart-town-dbservice"
+}
