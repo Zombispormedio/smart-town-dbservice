@@ -1,18 +1,20 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/Zombispormedio/smartdb/routes"
 )
 
 func main() {
+	fmt.Println(routes.BuildHello())
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		log.Fatal("$PORT must be set")
+		port="5060"
 	}
 
 	router := gin.New()
