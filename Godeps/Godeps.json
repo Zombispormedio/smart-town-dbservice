@@ -1,5 +1,5 @@
 {
-	"ImportPath": "dbservice",
+	"ImportPath": "github.com/Zombispormedio/smartdb",
 	"GoVersion": "go1.6",
 	"Deps": [
 		{
@@ -33,6 +33,8 @@
 			"ImportPath": "gopkg.in/go-playground/validator.v8",
 			"Comment": "v8.17.1",
 			"Rev": "014792cf3e266caff1e916876be12282b33059e0"
+		},{
+		"ImportPath": "github.com/Zombispormedio/smartdb/routes"
 		}
 	]
 }
