@@ -5,7 +5,8 @@ import(
 
 )
 
-type Person struct{
-    Name string
-    Phone string
+type OAuth struct{
+    Email string
+    Password string
+    Token []string
 }

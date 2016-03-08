@@ -15,8 +15,6 @@ func main() {
     router := gin.New()
     config.ServerConfig(router)
 
-
-
     session:=config.SessionDB()
 
 
@@ -27,7 +25,7 @@ func main() {
     }
 
 
-    routes.Set(router, session)
+    routes.Set(router, session) 
 
     port := os.Getenv("PORT")
 

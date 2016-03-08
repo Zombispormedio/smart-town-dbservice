@@ -24,6 +24,7 @@ func SessionDB() *mgo.Session {
     }
 
     session.SetMode(mgo.Monotonic, true)
+
     
     return session
 
