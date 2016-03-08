@@ -30,3 +30,7 @@ func SessionDB() *mgo.Session {
 
 }
 
+
+func GetDB(session *mgo.Session) *mgo.Database{
+    return session.DB(os.Getenv("SMARTDB"))
+}

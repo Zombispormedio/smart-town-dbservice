@@ -17,6 +17,11 @@ type ErrorT struct{
     Error string `json:"error"`
 }
 
+type DataT struct{
+    Status int  `json:"status"`
+    Data interface{} `json:"data"`
+}
+
 
 
 func SuccessMessage(c *gin.Context, message string){
@@ -29,8 +34,15 @@ func SuccessMessage(c *gin.Context, message string){
 func Error(c * gin.Context, code int, error string){
     var msg ErrorT
     
-
+    msg.Status=1
     msg.Error=error
     c.JSON(code, msg)
     c.AbortWithStatus(code)
+}
+
+func Success(c *gin.Context, data interface{}){
+    var msg DataT
+
+    msg.Data=data
+    c.JSON(200, data)
 }
