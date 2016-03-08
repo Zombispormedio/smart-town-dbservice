@@ -6,6 +6,6 @@ import (
     
 )
 
-func ServerConfig( router *gin.Engine){
+func ServerConfig(router *gin.Engine){
     router.Use(gin.Logger())
 }

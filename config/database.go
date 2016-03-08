@@ -1,7 +1,14 @@
 package config
+import(
+    
+    "os"
+    "log"
+    "time"
+    "gopkg.in/mgo.v2"
+)
 
-/*
- 
+func SessionDB() *mgo.Session {
+
     mongoDBDialInfo:=&mgo.DialInfo{
         Addrs: []string{os.Getenv("SMARTDBHOST")},
         Timeout:60*time.Second,
@@ -11,28 +18,14 @@ package config
     }
 
     session, err:= mgo.DialWithInfo(mongoDBDialInfo)
-    
     if err != nil{
         log.Fatalf("CreateSession: %s\n", err)
+        return nil
     }
-    
-    defer session.Close()
-    
+
     session.SetMode(mgo.Monotonic, true)
     
-    
-    c:= session.DB(mongoDBDialInfo.Database).C("people")
-    err = c.Insert(&Person{"Ale", "+5584155451"},
-                   &Person{"Cla", "+5258452545"})
-    
-    if err != nil{
-        log.Fatal(err)
-    }
-    result:=Person{}
-    err= c.Find(bson.M{"name": "Ale"}).One(&result)
-    
-    if err != nil{
-        log.Fatal(err)
-    }
-    
-    fmt.Println("Phone: ", result.Phone)*/
+    return session
+
+}
+
