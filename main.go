@@ -2,6 +2,7 @@ package main
 
 import (
     "os"
+   
     "github.com/gin-gonic/gin"
     "github.com/Zombispormedio/smartdb/config"
     "github.com/Zombispormedio/smartdb/routes"
