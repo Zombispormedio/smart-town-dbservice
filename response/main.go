@@ -2,7 +2,7 @@ package response
 
 import(
     "github.com/gin-gonic/gin"
-
+    "github.com/Zombispormedio/smartdb/utils"
 )
 
 
@@ -12,7 +12,7 @@ type MessageT struct{
     Message string `json:"message"`
 }
 
-type ErrorT struct{
+type ErrorMessageT struct{
     Status int  `json:"status"`
     Error string `json:"error"`
 }
@@ -31,16 +31,26 @@ func SuccessMessage(c *gin.Context, message string){
     c.JSON(200, msg)
 }
 
-func Error(c * gin.Context, code int, error string){
-    var msg ErrorT
-    
+func ErrorByString(c * gin.Context, code int, error string){
+    var msg  ErrorMessageT
+
     msg.Status=1
     msg.Error=error
     c.JSON(code, msg)
     c.AbortWithStatus(code)
 }
 
-func Success(c *gin.Context, data interface{}){
+func Error(c * gin.Context, error *utils.RequestError){
+    var msg  ErrorMessageT
+    msg.Status=1
+    msg.Error=error.Message
+    code := error.Code
+    c.JSON(code, msg)
+    c.AbortWithStatus(code);
+
+}
+
+func Success(c *gin.Context, data  interface{}){
     var msg DataT
 
     msg.Data=data

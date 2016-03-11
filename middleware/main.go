@@ -23,10 +23,28 @@ func Secret() gin.HandlerFunc{
 
         equals := strings.Compare(c.Request.Header.Get("Authorization"), os.Getenv("SMARTDBSECRET"))
         if equals !=0{
-            response.Error(c, 403, "No Authorization");
+            response.ErrorByString(c, 403, "No Authorization");
             return;
         }
         c.Next();
 
+    }
+}
+
+func CheckBody() gin.HandlerFunc{
+    return func(c *gin.Context){
+
+        var body map[string]string
+
+
+        BindingJSONError:=c.BindJSON(&body)
+        if BindingJSONError!=nil{
+            response.ErrorByString(c, 400, "No body in HttpRequest");
+            return;
+        }
+        
+        c.Set("body", body);
+        
+        c.Next();
     }
 }

@@ -9,7 +9,7 @@ const PROD_MAIN="cmd/smartdb/main.go";
 const GODEP="Godeps/Godeps.json";
 const INTERNAL="github.com/Zombispormedio/smartdb/";
 const PACKAGES=[
-  "routes", "config", "models" , "controllers", "middleware", "response"
+  "routes", "config", "models" , "controllers", "middleware", "response", "utils"
 ];
 
 

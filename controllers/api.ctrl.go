@@ -4,25 +4,45 @@ import(
     "gopkg.in/mgo.v2"
     "github.com/Zombispormedio/smartdb/response"
     "github.com/Zombispormedio/smartdb/models"
-
+    "github.com/Zombispormedio/smartdb/utils"
+    // "fmt"
 )
+
 
 
 func Register(c *gin.Context, session *mgo.Session ){
 
     defer session.Close()
 
-    var body map[string]string
+    body_interface,_:=c.Get("body")
+    body:=utils.InterfaceToMapString(body_interface);
 
-    oauth:=models.OAuth{}
-    if c.BindJSON(&body)==nil{
+    oauth:=models.OAuth{}    
 
+    NewOauthError:=oauth.Register(body, session)
 
-
-        oauth.New(body, session)  
-        response.SuccessMessage(c, "all good")
-
-
-
+    if  NewOauthError == nil{
+        response.SuccessMessage(c, "User Registered")
+    }else{
+        response.Error(c, NewOauthError);
     }
+
+}
+
+
+func Login(c *gin.Context, session *mgo.Session ){
+    defer session.Close()
+
+    body_interface,_:=c.Get("body")
+    body:=utils.InterfaceToMapString(body_interface);
+    
+    token, LoginError:=models.Login(body, session)
+    
+    if LoginError == nil{
+        response.Success(c, token)
+    }else{
+           response.Error(c, LoginError);
+    }
+    
+
 }

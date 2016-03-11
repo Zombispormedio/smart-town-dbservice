@@ -27,6 +27,7 @@ function execMain(){
 
     }, function(){
         console.log("Service finished");
+         install();
     });
 
 
@@ -38,7 +39,6 @@ function execMain(){
             case "rs":{
                 console.log("Killing service");
                 proc.kill('SIGINT');
-                install();
                 break;
             }
             case "stop": {
@@ -58,7 +58,10 @@ function execMain(){
 function install(){
     console.log("Compiling service...")
     exec(GO_INSTALL, function(error, stdout, stderr) {
-        if(error)return console.log(error);
+        if(error){
+            console.log(error);
+            process.exit();
+        } 
         console.log("Service compiled");
         execMain(); 
     });
