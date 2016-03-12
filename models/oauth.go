@@ -106,8 +106,10 @@ func Login( obj  map[string]string, session *mgo.Session) (*utils.TokenLogin, *u
     token := jwt.New(jwt.SigningMethodHS256)
     token.Claims["id"] =oauth.ID
     token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-
-    tokenString, TokenGeneratedError := token.SignedString(os.Getenv("SMARTDBSECRET"))
+    
+    secret:=[]byte(os.Getenv("SMARTDBSECRET"))
+    tokenString, TokenGeneratedError := token.SignedString(secret)
+    fmt.Println(TokenGeneratedError)
 
     if  TokenGeneratedError != nil{
         return nil, utils.BadRequestError("TokenError")
