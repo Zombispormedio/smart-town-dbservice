@@ -137,16 +137,16 @@ func SessionToken(tokenString string,session *mgo.Session) *utils.RequestError{
  
     
     
-     token, ParsingTokenError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, *utils.RequestError) {
+     token, ParsingTokenError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
         // Don't forget to validate the alg is what you expect:
         if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-            return nil, utils.BadRequestError("Unexpected signing method: %v", token.Header["alg"])
+            return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
         }
         return token, nil
     })
     
     if ParsingTokenError != nil{
-        return ParsingTokenError
+        return utils.BadRequestError("Parsing Token Error")
     }
     
     

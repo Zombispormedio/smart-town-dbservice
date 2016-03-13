@@ -1,7 +1,7 @@
 var child_process=require('child_process');
 var exec = child_process.exec;
 var spawn = child_process.spawn;
-
+var proc=void 0;
 const GO_INSTALL = 'go install';
 const SERVICE='smartdb.exe';
 
@@ -20,7 +20,7 @@ function run_cmd(cmd, args, cb, error, end) {
 
 function execMain(){
     console.log("Starting service...");
-    var proc=run_cmd(SERVICE, [], function(me, buffer){
+    proc=run_cmd(SERVICE, [], function(me, buffer){
         console.log(buffer.toString());
     },function(data){
         console.log(data.toString());
@@ -28,28 +28,6 @@ function execMain(){
     }, function(){
         console.log("Service finished");
          install();
-    });
-
-
-    var stdin = process.openStdin();
-    stdin.addListener("data", function(d) {
-        var command=d.toString().trim();
-
-        switch(command){
-            case "rs":{
-                console.log("Killing service");
-                proc.kill('SIGINT');
-				stdin.stop();
-                break;
-            }
-            case "stop": {
-                console.log("Process exit()");
-                process.exit();
-                break;
-            }
-
-        }
-
     });
 
 }
@@ -67,5 +45,28 @@ function install(){
         execMain(); 
     });
 }
+
+
+   var stdin = process.openStdin();
+    stdin.addListener("data", function(d) {
+        var command=d.toString().trim();
+
+        switch(command){
+            case "rs":{
+                console.log("Killing service");
+				if(proc)
+                proc.kill('SIGINT');
+			
+                break;
+            }
+            case "stop": {
+                console.log("Process exit()");
+                process.exit();
+                break;
+            }
+
+        }
+
+    });
 
 install();
