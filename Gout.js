@@ -39,6 +39,7 @@ function execMain(){
             case "rs":{
                 console.log("Killing service");
                 proc.kill('SIGINT');
+				stdin.stop();
                 break;
             }
             case "stop": {

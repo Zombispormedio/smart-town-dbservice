@@ -30,14 +30,17 @@ func Set(router *gin.Engine, session *mgo.Session ){
 
         oauth:=api.Group("/oauth")
         {
-            oauth_with_secret:=oauth.Use(middleware.Secret())
+            
             register:=_default(controllers.Register)
-            oauth_with_secret.POST("/register", middleware.CheckBody(),register)
+            oauth.POST("/register", middleware.Secret(), middleware.Body(),register)
             
             
             login:=_default(controllers.Login)
-            oauth.POST("/login",  middleware.CheckBody(), login)
+            oauth.POST("/login",  middleware.Body(), login)
             
+        
+            logout:=_default(controllers.Logout)
+            oauth.GET("/logout", middleware.Admin(session.Copy()), logout)
         }
 
 

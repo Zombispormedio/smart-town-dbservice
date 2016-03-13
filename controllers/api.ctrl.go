@@ -46,3 +46,8 @@ func Login(c *gin.Context, session *mgo.Session ){
     
 
 }
+
+func Logout(c *gin.Context, session *mgo.Session){
+     defer session.Close()
+     response.SuccessMessage(c, "Perfect")
+}

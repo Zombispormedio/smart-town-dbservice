@@ -5,10 +5,11 @@ import(
     "os"
     "strings"
     "github.com/gin-gonic/gin"
-    //  "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2"
 
     "github.com/Zombispormedio/smartdb/response"
-
+     "github.com/Zombispormedio/smartdb/models"
+    "fmt"
 
 )
 
@@ -23,7 +24,7 @@ func Secret() gin.HandlerFunc{
 
         equals := strings.Compare(c.Request.Header.Get("Authorization"), os.Getenv("SMARTDBSECRET"))
         if equals !=0{
-            response.ErrorByString(c, 403, "No Authorization");
+            response.ErrorByString(c, 403, "No Authorization: SecretError");
             return;
         }
         c.Next();
@@ -31,7 +32,7 @@ func Secret() gin.HandlerFunc{
     }
 }
 
-func CheckBody() gin.HandlerFunc{
+func Body() gin.HandlerFunc{
     return func(c *gin.Context){
 
         var body map[string]string
@@ -46,5 +47,29 @@ func CheckBody() gin.HandlerFunc{
         c.Set("body", body);
         
         c.Next();
+    }
+}
+
+
+func Admin(session *mgo.Session) gin.HandlerFunc{
+    return func(c *gin.Context){
+        defer session.Close()
+        
+        token:=c.Request.Header.Get("Authorization")
+        
+        if token == ""{
+            response.ErrorByString(c, 403, "No Authorization: Empty Token");
+            return;
+        }
+        
+        err:=models.SessionToken(token, session)
+        fmt.Println(err)
+        if err != nil{
+            response.ErrorByString(c, 403, "No Authorization: TokenError");
+            return;
+        }
+        
+        c.Next();
+        
     }
 }

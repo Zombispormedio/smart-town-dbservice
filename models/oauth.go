@@ -34,7 +34,7 @@ func getOAuthByEmail(email string, session *mgo.Session) (OAuth, error){
 
     error := c.Find(bson.M{"email": email}).One(&result)
 
- 
+
     return result, error
 }
 
@@ -58,8 +58,8 @@ func (oauth *OAuth) Register(obj  map[string]string, session *mgo.Session)  *uti
     if FoundError == nil{
         return utils.BadRequestError("User Exists")
     }
-    
-  
+
+
     oauth.Email=obj["email"];
     password:=[]byte(obj["password"])
 
@@ -92,12 +92,12 @@ func Login( obj  map[string]string, session *mgo.Session) (*utils.TokenLogin, *u
     if FoundError != nil{
         return nil, utils.BadRequestError("User Not Exists")
     }
-    
+
     tempHashPass:=[]byte(oauth.Password)
     tempStrPass:=[]byte(obj["password"])
 
     PasswordError := bcrypt.CompareHashAndPassword(tempHashPass, tempStrPass)
-    fmt.Println(PasswordError)
+
     if  PasswordError != nil{
         return nil, utils.BadRequestError("Password Not Valid")
     }
@@ -106,16 +106,72 @@ func Login( obj  map[string]string, session *mgo.Session) (*utils.TokenLogin, *u
     token := jwt.New(jwt.SigningMethodHS256)
     token.Claims["id"] =oauth.ID
     token.Claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-    
+
     secret:=[]byte(os.Getenv("SMARTDBSECRET"))
     tokenString, TokenGeneratedError := token.SignedString(secret)
-    fmt.Println(TokenGeneratedError)
+    fmt.Println(oauth)
 
     if  TokenGeneratedError != nil{
         return nil, utils.BadRequestError("TokenError")
+
+    }
+
+    collection:=GetOAuthCollection(session)
+
+    token_query:=bson.M{"token":tokenString}
+    UpdateError:=collection.Update(bson.M{"_id":oauth.ID}, bson.M{"$addToSet":token_query})
+
+    if  UpdateError != nil{
+        return nil, utils.BadRequestError("Updating Token Array Error")
+
     }
 
 
+
     return &utils.TokenLogin{Token:tokenString}, nil
+}
+
+
+func SessionToken(tokenString string,session *mgo.Session) *utils.RequestError{
+
+ 
+    
+    
+     token, ParsingTokenError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, *utils.RequestError) {
+        // Don't forget to validate the alg is what you expect:
+        if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+            return nil, utils.BadRequestError("Unexpected signing method: %v", token.Header["alg"])
+        }
+        return token, nil
+    })
+    
+    if ParsingTokenError != nil{
+        return ParsingTokenError
+    }
+    
+    
+    oauth_id:=token.Claims["id"]
+   
+    
+    
+    collection:=GetOAuthCollection(session)
+
+    result := OAuth{}
+    
+   
+
+    FindingError := collection.Find(bson.M{"_id": oauth_id, "token":tokenString}).One(&result)
+    
+    
+    if FindingError != nil{
+        return utils.BadRequestError("Session Not Exists")
+    }
+    
+    return nil
+
+}
+
+func Logout(token string, session *mgo.Session){
+
 }
 
