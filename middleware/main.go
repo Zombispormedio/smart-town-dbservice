@@ -9,7 +9,7 @@ import(
 
     "github.com/Zombispormedio/smartdb/response"
      "github.com/Zombispormedio/smartdb/models"
-    "fmt"
+    //"fmt"
 
 )
 
@@ -53,7 +53,6 @@ func Body() gin.HandlerFunc{
 
 func Admin(session *mgo.Session) gin.HandlerFunc{
     return func(c *gin.Context){
-        defer session.Close()
         
         token:=c.Request.Header.Get("Authorization")
         
@@ -62,12 +61,15 @@ func Admin(session *mgo.Session) gin.HandlerFunc{
             return;
         }
         
-        err:=models.SessionToken(token, session)
-        fmt.Println(err)
+        user, err:=models.SessionToken(token, session)
+       
         if err != nil{
-            response.ErrorByString(c, 403, "No Authorization: TokenError");
+            response.Error(c, err);
             return;
         }
+        
+        c.Set("user", user)
+        
         
         c.Next();
         

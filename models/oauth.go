@@ -10,7 +10,7 @@ import(
     "github.com/Zombispormedio/smartdb/config"
     "github.com/Zombispormedio/smartdb/utils"
 
-    "fmt"
+    
 
 )
 
@@ -109,7 +109,7 @@ func Login( obj  map[string]string, session *mgo.Session) (*utils.TokenLogin, *u
 
     secret:=[]byte(os.Getenv("SMARTDBSECRET"))
     tokenString, TokenGeneratedError := token.SignedString(secret)
-    fmt.Println(oauth)
+   
 
     if  TokenGeneratedError != nil{
         return nil, utils.BadRequestError("TokenError")
@@ -132,26 +132,24 @@ func Login( obj  map[string]string, session *mgo.Session) (*utils.TokenLogin, *u
 }
 
 
-func SessionToken(tokenString string,session *mgo.Session) *utils.RequestError{
+func SessionToken(tokenString string,session *mgo.Session) (interface{}, *utils.RequestError){
 
  
     
-    
+
      token, ParsingTokenError := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
         // Don't forget to validate the alg is what you expect:
-        if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-            return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-        }
-        return token, nil
+       
+         return []byte(os.Getenv("SMARTDBSECRET")), nil
     })
-    
+   
     if ParsingTokenError != nil{
-        return utils.BadRequestError("Parsing Token Error")
+        return nil, utils.BadRequestError("Parsing Token Error")
     }
     
     
     oauth_id:=token.Claims["id"]
-   
+    
     
     
     collection:=GetOAuthCollection(session)
@@ -160,18 +158,29 @@ func SessionToken(tokenString string,session *mgo.Session) *utils.RequestError{
     
    
 
-    FindingError := collection.Find(bson.M{"_id": oauth_id, "token":tokenString}).One(&result)
+    FindingError := collection.Find(bson.M{"_id": bson.ObjectIdHex(oauth_id.(string)), "token":tokenString}).One(&result)
     
     
     if FindingError != nil{
-        return utils.BadRequestError("Session Not Exists")
+        return nil, utils.BadRequestError("Session Not Exists")
     }
     
-    return nil
+    return oauth_id, nil
 
 }
 
-func Logout(token string, session *mgo.Session){
+func Logout(token string, user_id string, session *mgo.Session) *utils.RequestError{
+    
 
+    collection:=GetOAuthCollection(session)
+    
+    update_query:=bson.M{"token":token}
+    UpdateError:=collection.UpdateId(bson.ObjectIdHex(user_id), bson.M{"$pull":update_query})
+    
+    if UpdateError != nil{
+        return utils.BadRequestError("Updating Problem")
+    }
+    
+    return nil
 }
 

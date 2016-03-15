@@ -49,5 +49,15 @@ func Login(c *gin.Context, session *mgo.Session ){
 
 func Logout(c *gin.Context, session *mgo.Session){
      defer session.Close()
-     response.SuccessMessage(c, "Perfect")
+    token:=c.Request.Header.Get("Authorization")
+    pre_user, _:=c.Get("user")
+    user:=pre_user.(string)
+     
+    LogoutError:=models.Logout(token, user, session)
+    
+    if LogoutError == nil{
+        response.SuccessMessage(c, "Congratulations, You have logged out")
+    }else{
+        response.Error(c, LogoutError)
+    }
 }
