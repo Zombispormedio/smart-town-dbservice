@@ -3,6 +3,7 @@ package response
 import(
     "github.com/gin-gonic/gin"
     "github.com/Zombispormedio/smartdb/utils"
+    //"fmt"
 )
 
 
@@ -54,5 +55,8 @@ func Success(c *gin.Context, data  interface{}){
     var msg DataT
 
     msg.Data=data
-    c.JSON(200, data)
+    
+ 
+    
+    c.JSON(200, msg)
 }
