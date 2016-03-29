@@ -14,8 +14,8 @@ func Register(c *gin.Context, session *mgo.Session ){
 
     defer session.Close()
 
-    body_interface,_:=c.Get("body")
-    body:=utils.InterfaceToMapString(body_interface);
+    bodyInterface,_:=c.Get("body")
+    body:=utils.InterfaceToMapString(bodyInterface);
 
     oauth:=models.OAuth{}    
 
@@ -33,8 +33,8 @@ func Register(c *gin.Context, session *mgo.Session ){
 func Login(c *gin.Context, session *mgo.Session ){
     defer session.Close()
 
-    body_interface,_:=c.Get("body")
-    body:=utils.InterfaceToMapString(body_interface);
+    bodyInterface,_:=c.Get("body")
+    body:=utils.InterfaceToMapString(bodyInterface);
     
     token, LoginError:=models.Login(body, session)
     
@@ -50,8 +50,8 @@ func Login(c *gin.Context, session *mgo.Session ){
 func Logout(c *gin.Context, session *mgo.Session){
      defer session.Close()
     token:=c.Request.Header.Get("Authorization")
-    pre_user, _:=c.Get("user")
-    user:=pre_user.(string)
+    preUser, _:=c.Get("user")
+    user:=preUser.(string)
      
     LogoutError:=models.Logout(token, user, session)
     
@@ -59,5 +59,21 @@ func Logout(c *gin.Context, session *mgo.Session){
         response.SuccessMessage(c, "Congratulations, You have logged out")
     }else{
         response.Error(c, LogoutError)
+    }
+}
+
+func Whoiam(c *gin.Context, session *mgo.Session){
+     defer session.Close()
+   
+    preUser, _:=c.Get("user")
+    user:=preUser.(string)
+      var profile=models.Profile{}
+     
+    WhoiamError:=models.GetProfile(user, &profile, session)
+    
+    if  WhoiamError == nil{
+        response.Success(c, profile)
+    }else{
+        response.Error(c, WhoiamError)
     }
 }

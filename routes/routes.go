@@ -39,6 +39,9 @@ func Set(router *gin.Engine, session *mgo.Session ){
             oauth.POST("/login",  middleware.Body(), login)
             
         
+            whoiam:=_default(controllers.Whoiam)
+            oauth.GET("/whoiam", middleware.Admin(session.Copy()),  whoiam)
+            
             logout:=_default(controllers.Logout)
             oauth.GET("/logout", middleware.Admin(session.Copy()), logout)
         }
