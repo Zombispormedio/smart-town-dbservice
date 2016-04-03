@@ -42,3 +42,18 @@ func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+
+func DeleteMagnitude(c *gin.Context, session *mgo.Session) {
+    id:=c.Param("id")
+    
+    RemoveError:=models.DelMagnitude(id, session)
+    
+     if RemoveError == nil {
+         GetMagnitudes(c, session)   
+	} else {
+		response.Error(c, RemoveError)
+        session.Close()
+	}
+    
+}

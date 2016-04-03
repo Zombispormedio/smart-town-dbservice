@@ -47,13 +47,13 @@ func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Magnitude")
 }
 
-func (magnitude *Magnitude) New(obj map[string]string,  userID string, session *mgo.Session) *utils.RequestError {
+func (magnitude *Magnitude) New(obj map[string]string, userID string, session *mgo.Session) *utils.RequestError {
 	var error *utils.RequestError
 
 	magnitude.DisplayName = obj["display_name"]
 	magnitude.Type = obj["type"]
-    magnitude.CreatedAt=bson.Now();
-    magnitude.CreatedBy=bson.ObjectIdHex(userID)
+	magnitude.CreatedAt = bson.Now()
+	magnitude.CreatedBy = bson.ObjectIdHex(userID)
 
 	c := MagnitudeCollection(session)
 
@@ -67,19 +67,32 @@ func (magnitude *Magnitude) New(obj map[string]string,  userID string, session *
 	return error
 }
 
-func AllMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils.RequestError{
-   var ReqError *utils.RequestError
-    c := MagnitudeCollection(session)
- 
+func AllMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils.RequestError {
+	var ReqError *utils.RequestError
+	c := MagnitudeCollection(session)
+
+	iter := c.Find(nil).Select(bson.M{"units": 0, "conversions": 0}).Iter()
+
+	IterError := iter.All(magnitudes)
+
+	if IterError != nil {
+		ReqError = utils.BadRequestError("Error All Magnitudes")
+		fmt.Println(IterError)
+	}
+
+	return ReqError
+}
+
+func DelMagnitude(id string, session *mgo.Session) *utils.RequestError {
+	var ReqError *utils.RequestError
+	c := MagnitudeCollection(session)
     
-    iter:=c.Find(nil).Select(bson.M{ "units":0, "conversions":0}).Iter()
+    RemoveError:=c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
     
-    IterError :=iter.All(magnitudes)
-    
-    if  IterError !=nil{
-        ReqError = utils.BadRequestError("Error All Magnitudes")
-		fmt.Println( IterError )
-    }
-    
-    return ReqError
+    if RemoveError != nil {
+		ReqError = utils.BadRequestError("Error Removing Magnitude: "+id)
+		fmt.Println(RemoveError)
+	}
+
+	return ReqError
 }
