@@ -45,6 +45,13 @@ func Set(router *gin.Engine, session *mgo.Session ){
             logout:=_default(controllers.Logout)
             oauth.GET("/logout", middleware.Admin(session.Copy()), logout)
         }
+        
+        magnitude:=api.Group("/magnitude")
+        {
+            NewMagnitude:=_default(controllers.CreateMagnitude)
+            magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), NewMagnitude)
+            
+        }
 
 
 

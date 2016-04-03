@@ -9,7 +9,7 @@ import(
 
     "github.com/Zombispormedio/smartdb/response"
      "github.com/Zombispormedio/smartdb/models"
-    //"fmt"
+
 
 )
 
@@ -39,6 +39,7 @@ func Body() gin.HandlerFunc{
 
 
         BindingJSONError:=c.BindJSON(&body)
+    
         if BindingJSONError!=nil{
             response.ErrorByString(c, 400, "No body in HttpRequest");
             return;
