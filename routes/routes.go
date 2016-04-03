@@ -48,9 +48,11 @@ func Set(router *gin.Engine, session *mgo.Session ){
         
         magnitude:=api.Group("/magnitude")
         {
-            NewMagnitude:=_default(controllers.CreateMagnitude)
-            magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), NewMagnitude)
+            CreateMagnitude:=_default(controllers.CreateMagnitude)
+            magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), CreateMagnitude)
             
+             GetMagnitudes:=_default(controllers.GetMagnitudes)
+              magnitude.GET("", middleware.Admin(session.Copy()), GetMagnitudes)
         }
 
 
