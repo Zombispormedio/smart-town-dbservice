@@ -101,13 +101,52 @@ func (magnitude *Magnitude) ByID(ID string, session *mgo.Session) *utils.Request
 	var Error *utils.RequestError
 
 	c := MagnitudeCollection(session)
-    
-    FindingError:=c.FindId(bson.ObjectIdHex(ID)).One(magnitude)
-    
-    if FindingError != nil {
+
+	FindingError := c.FindId(bson.ObjectIdHex(ID)).One(magnitude)
+
+	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding Magnitude: " + ID)
 		fmt.Println(FindingError)
 	}
 
 	return Error
+}
+
+func (magnitude *Magnitude) SetDisplayName(ID string, DisplayName string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+	change := ChangeOneSet("display_name", DisplayName)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &magnitude)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Magnitude " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+
+}
+
+func (magnitude *Magnitude) SetType(ID string, Type string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+	change := ChangeOneSet("type", Type)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &magnitude)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Magnitude " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+
+}
+
+func ChangeOneSet(key string, value string) mgo.Change {
+	return mgo.Change{
+		Update:    bson.M{"$set": bson.M{key: value}},
+		ReturnNew: true,
+	}
 }

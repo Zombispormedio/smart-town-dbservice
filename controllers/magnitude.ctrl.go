@@ -10,10 +10,10 @@ import (
 
 func CreateMagnitude(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
-    
+
 	preUser, _ := c.Get("user")
 	user := preUser.(string)
-    
+
 	bodyInterface, _ := c.Get("body")
 	body := utils.InterfaceToMapString(bodyInterface)
 
@@ -31,11 +31,11 @@ func CreateMagnitude(c *gin.Context, session *mgo.Session) {
 
 func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
-    
-    var result []models.ListMagnitudeItem
-    
-    GetAllError:=models.GetMagnitudes(&result, session)
-    if GetAllError == nil {
+
+	var result []models.ListMagnitudeItem
+
+	GetAllError := models.GetMagnitudes(&result, session)
+	if GetAllError == nil {
 		response.Success(c, result)
 	} else {
 		response.Error(c, GetAllError)
@@ -43,36 +43,73 @@ func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 
 }
 
-
 func DeleteMagnitude(c *gin.Context, session *mgo.Session) {
-    id:=c.Param("id")
-    
-    RemoveError:=models.DeleteMagnitude(id, session)
-    
-     if RemoveError == nil {
-         GetMagnitudes(c, session)   
+	id := c.Param("id")
+
+	RemoveError := models.DeleteMagnitude(id, session)
+
+	if RemoveError == nil {
+		GetMagnitudes(c, session)
 	} else {
 		response.Error(c, RemoveError)
-        session.Close()
+		session.Close()
 	}
-    
+
 }
 
+func GetMagnitudeByID(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
 
-func GetMagnitudeByID(c *gin.Context, session *mgo.Session){
-    defer session.Close()
-     id:=c.Param("id")
-     
-     magnitude := models.Magnitude{}
-     
-     
-    ByIdError:=magnitude.ByID(id, session);
-    
-     if  ByIdError== nil {
-       response.Success(c, magnitude)  
+	magnitude := models.Magnitude{}
+
+	ByIdError := magnitude.ByID(id, session)
+
+	if ByIdError == nil {
+		response.Success(c, magnitude)
 	} else {
 		response.Error(c, ByIdError)
 
 	}
-     
+
+}
+
+func SetMagnitudeDisplayName(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMapString(bodyInterface)
+
+	magnitude := models.Magnitude{}
+    
+    SettingError:=magnitude.SetDisplayName(id, body["display_name"], session)
+    
+    
+	if  SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c,  SettingError)
+
+	}
+}
+
+func SetMagnitudeType(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMapString(bodyInterface)
+
+	magnitude := models.Magnitude{}
+    
+    SettingError:=magnitude.SetType(id, body["type"], session)
+    
+    
+	if  SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c,  SettingError)
+
+	}
 }

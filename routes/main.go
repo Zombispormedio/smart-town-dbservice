@@ -44,13 +44,22 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 			All := _default(controllers.GetMagnitudes)
 			magnitude.GET("", middleware.Admin(session.Copy()), All)
-            
-            ByID:=_default(controllers.GetMagnitudeByID)
-            magnitude.GET(":id", middleware.Admin(session.Copy()), ByID)
-            
-            
-            Delete:=_default(controllers.DeleteMagnitude)
-            magnitude.DELETE(":id", middleware.Admin(session.Copy()), Delete)
+
+			WithID := magnitude.Group("/:id")
+			{
+				ByID := _default(controllers.GetMagnitudeByID)
+				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+
+				DisplayName := _default(controllers.SetMagnitudeDisplayName)
+				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+
+				Type := _default(controllers.SetMagnitudeType)
+				WithID.PUT("/type", middleware.Admin(session.Copy()), middleware.Body(), Type)
+
+				Delete := _default(controllers.DeleteMagnitude)
+				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+			}
+
 		}
 
 	}
