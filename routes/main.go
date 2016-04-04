@@ -39,14 +39,18 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 		magnitude := api.Group("/magnitude")
 		{
-			CreateMagnitude := _default(controllers.CreateMagnitude)
-			magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), CreateMagnitude)
+			Create := _default(controllers.CreateMagnitude)
+			magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
 
-			GetMagnitudes := _default(controllers.GetMagnitudes)
-			magnitude.GET("", middleware.Admin(session.Copy()), GetMagnitudes)
+			All := _default(controllers.GetMagnitudes)
+			magnitude.GET("", middleware.Admin(session.Copy()), All)
             
-            DeleteMagnitude:=_default(controllers.DeleteMagnitude)
-            magnitude.DELETE(":id", middleware.Admin(session.Copy()), DeleteMagnitude)
+            ByID:=_default(controllers.GetMagnitudeByID)
+            magnitude.GET(":id", middleware.Admin(session.Copy()), ByID)
+            
+            
+            Delete:=_default(controllers.DeleteMagnitude)
+            magnitude.DELETE(":id", middleware.Admin(session.Copy()), Delete)
 		}
 
 	}

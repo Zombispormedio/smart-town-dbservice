@@ -48,7 +48,7 @@ func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 }
 
 func (magnitude *Magnitude) New(obj map[string]string, userID string, session *mgo.Session) *utils.RequestError {
-	var error *utils.RequestError
+	var Error *utils.RequestError
 
 	magnitude.DisplayName = obj["display_name"]
 	magnitude.Type = obj["type"]
@@ -60,15 +60,15 @@ func (magnitude *Magnitude) New(obj map[string]string, userID string, session *m
 	InsertError := c.Insert(magnitude)
 
 	if InsertError != nil {
-		error = utils.BadRequestError("Error Inserting")
+		Error = utils.BadRequestError("Error Inserting")
 		fmt.Println(InsertError)
 	}
 
-	return error
+	return Error
 }
 
-func AllMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils.RequestError {
-	var ReqError *utils.RequestError
+func GetMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
 
 	iter := c.Find(nil).Select(bson.M{"units": 0, "conversions": 0}).Iter()
@@ -76,23 +76,38 @@ func AllMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils
 	IterError := iter.All(magnitudes)
 
 	if IterError != nil {
-		ReqError = utils.BadRequestError("Error All Magnitudes")
+		Error = utils.BadRequestError("Error All Magnitudes")
 		fmt.Println(IterError)
 	}
 
-	return ReqError
+	return Error
 }
 
-func DelMagnitude(id string, session *mgo.Session) *utils.RequestError {
-	var ReqError *utils.RequestError
+func DeleteMagnitude(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
-    
-    RemoveError:=c.Remove(bson.M{"_id": bson.ObjectIdHex(id)})
-    
-    if RemoveError != nil {
-		ReqError = utils.BadRequestError("Error Removing Magnitude: "+id)
+
+	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
+
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing Magnitude: " + ID)
 		fmt.Println(RemoveError)
 	}
 
-	return ReqError
+	return Error
+}
+
+func (magnitude *Magnitude) ByID(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := MagnitudeCollection(session)
+    
+    FindingError:=c.FindId(bson.ObjectIdHex(ID)).One(magnitude)
+    
+    if FindingError != nil {
+		Error = utils.BadRequestError("Error Finding Magnitude: " + ID)
+		fmt.Println(FindingError)
+	}
+
+	return Error
 }

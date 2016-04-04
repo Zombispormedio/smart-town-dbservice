@@ -34,7 +34,7 @@ func GetMagnitudes(c *gin.Context, session *mgo.Session) {
     
     var result []models.ListMagnitudeItem
     
-    GetAllError:=models.AllMagnitudes(&result, session)
+    GetAllError:=models.GetMagnitudes(&result, session)
     if GetAllError == nil {
 		response.Success(c, result)
 	} else {
@@ -47,7 +47,7 @@ func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 func DeleteMagnitude(c *gin.Context, session *mgo.Session) {
     id:=c.Param("id")
     
-    RemoveError:=models.DelMagnitude(id, session)
+    RemoveError:=models.DeleteMagnitude(id, session)
     
      if RemoveError == nil {
          GetMagnitudes(c, session)   
@@ -56,4 +56,23 @@ func DeleteMagnitude(c *gin.Context, session *mgo.Session) {
         session.Close()
 	}
     
+}
+
+
+func GetMagnitudeByID(c *gin.Context, session *mgo.Session){
+    defer session.Close()
+     id:=c.Param("id")
+     
+     magnitude := models.Magnitude{}
+     
+     
+    ByIdError:=magnitude.ByID(id, session);
+    
+     if  ByIdError== nil {
+       response.Success(c, magnitude)  
+	} else {
+		response.Error(c, ByIdError)
+
+	}
+     
 }
