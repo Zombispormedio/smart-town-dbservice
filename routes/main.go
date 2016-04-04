@@ -56,6 +56,19 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				Type := _default(controllers.SetMagnitudeType)
 				WithID.PUT("/type", middleware.Admin(session.Copy()), middleware.Body(), Type)
 
+				Digital := _default(controllers.SetMagnitudeDigitalUnits)
+				WithID.PUT("/digital", middleware.Admin(session.Copy()), middleware.Body(), Digital)
+
+				Analog := WithID.Group("analog")
+				{
+					Add := _default(controllers.AddMagnitudeAnalogUnit)
+					Analog.POST("", middleware.Admin(session.Copy()), middleware.Body(), Add)
+
+					Update := _default(controllers.UpdateMagnitudeAnalogUnit)
+					Analog.PUT("/:analog_id", middleware.Admin(session.Copy()), middleware.Body(), Update)
+
+				}
+
 				Delete := _default(controllers.DeleteMagnitude)
 				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
 			}

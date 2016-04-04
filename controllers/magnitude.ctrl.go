@@ -15,7 +15,7 @@ func CreateMagnitude(c *gin.Context, session *mgo.Session) {
 	user := preUser.(string)
 
 	bodyInterface, _ := c.Get("body")
-	body := utils.InterfaceToMapString(bodyInterface)
+	body := utils.InterfaceToMap(bodyInterface)
 
 	magnitude := models.Magnitude{}
 
@@ -79,17 +79,16 @@ func SetMagnitudeDisplayName(c *gin.Context, session *mgo.Session) {
 	id := c.Param("id")
 
 	bodyInterface, _ := c.Get("body")
-	body := utils.InterfaceToMapString(bodyInterface)
+	body := utils.InterfaceToMap(bodyInterface)
 
 	magnitude := models.Magnitude{}
-    
-    SettingError:=magnitude.SetDisplayName(id, body["display_name"], session)
-    
-    
-	if  SettingError == nil {
+
+	SettingError := magnitude.SetDisplayName(id, body["display_name"].(string), session)
+
+	if SettingError == nil {
 		response.Success(c, magnitude)
 	} else {
-		response.Error(c,  SettingError)
+		response.Error(c, SettingError)
 
 	}
 }
@@ -99,17 +98,73 @@ func SetMagnitudeType(c *gin.Context, session *mgo.Session) {
 	id := c.Param("id")
 
 	bodyInterface, _ := c.Get("body")
-	body := utils.InterfaceToMapString(bodyInterface)
+
+	body := utils.InterfaceToMap(bodyInterface)
 
 	magnitude := models.Magnitude{}
-    
-    SettingError:=magnitude.SetType(id, body["type"], session)
-    
-    
-	if  SettingError == nil {
+
+	SettingError := magnitude.SetType(id, body["type"].(string), session)
+
+	if SettingError == nil {
 		response.Success(c, magnitude)
 	} else {
-		response.Error(c,  SettingError)
+		response.Error(c, SettingError)
+
+	}
+}
+
+func SetMagnitudeDigitalUnits(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	magnitude := models.Magnitude{}
+
+	SettingError := magnitude.SetDigitalUnits(id, body["digital_units"], session)
+
+	if SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+func AddMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	magnitude := models.Magnitude{}
+
+	SettingError := magnitude.AddAnalogUnit(id, body["analog_unit"], session)
+
+	if SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+func UpdateMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+	analogID := c.Param("analog_id")
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+	magnitude := models.Magnitude{}
+
+	SettingError := magnitude.UpdateAnalogUnit(id, analogID, body["analog_unit"], session)
+
+	if SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, SettingError)
 
 	}
 }

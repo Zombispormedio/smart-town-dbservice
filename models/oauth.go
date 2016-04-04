@@ -46,20 +46,20 @@ func insertOAuth(oauth *OAuth, session *mgo.Session) error {
 	return InsertError
 }
 
-func (oauth *OAuth) Register(obj map[string]string, session *mgo.Session) *utils.RequestError {
+func (oauth *OAuth) Register(obj map[string]interface{}, session *mgo.Session) *utils.RequestError {
 
 	if obj["email"] == "" || obj["password"] == "" {
 		return utils.BadRequestError("Empty Params")
 	}
 
-	_, FoundError := getOAuthByEmail(obj["email"], session)
+	_, FoundError := getOAuthByEmail(obj["email"].(string), session)
 
 	if FoundError == nil {
 		return utils.BadRequestError("User Exists")
 	}
 
-	oauth.Email = obj["email"]
-	password := []byte(obj["password"])
+	oauth.Email = obj["email"].(string)
+	password := []byte(obj["password"].(string))
 
 	hashedPassword, EncryptError := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
@@ -78,20 +78,20 @@ func (oauth *OAuth) Register(obj map[string]string, session *mgo.Session) *utils
 
 }
 
-func Login(obj map[string]string, session *mgo.Session) (*utils.TokenLogin, *utils.RequestError) {
+func Login(obj map[string]interface{}, session *mgo.Session) (*utils.TokenLogin, *utils.RequestError) {
 
 	if obj["email"] == "" || obj["password"] == "" {
 		return nil, utils.BadRequestError("Empty Params")
 	}
 
-	oauth, FoundError := getOAuthByEmail(obj["email"], session)
+	oauth, FoundError := getOAuthByEmail(obj["email"].(string), session)
 
 	if FoundError != nil {
 		return nil, utils.BadRequestError("User Not Exists")
 	}
 
 	tempHashPass := []byte(oauth.Password)
-	tempStrPass := []byte(obj["password"])
+	tempStrPass := []byte(obj["password"].(string))
 
 	PasswordError := bcrypt.CompareHashAndPassword(tempHashPass, tempStrPass)
 

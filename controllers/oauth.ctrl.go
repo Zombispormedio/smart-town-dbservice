@@ -14,7 +14,7 @@ func Register(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
 	bodyInterface, _ := c.Get("body")
-	body := utils.InterfaceToMapString(bodyInterface)
+	body := utils.InterfaceToMap(bodyInterface)
 
 	oauth := models.OAuth{}
 
@@ -32,7 +32,7 @@ func Login(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
 	bodyInterface, _ := c.Get("body")
-	body := utils.InterfaceToMapString(bodyInterface)
+	body := utils.InterfaceToMap(bodyInterface)
 
 	token, LoginError := models.Login(body, session)
 

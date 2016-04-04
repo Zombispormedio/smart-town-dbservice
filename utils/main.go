@@ -12,8 +12,8 @@ func BadRequestError(msg string) *RequestError{
 }
 
 
-func InterfaceToMapString(obj interface{}) map[string]string{
-    return obj.(map[string]string)
+func InterfaceToMap(obj interface{}) map[string]interface{}{
+    return obj.(map[string]interface{})
 }
 
 
