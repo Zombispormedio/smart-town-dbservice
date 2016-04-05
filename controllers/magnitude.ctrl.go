@@ -154,12 +154,11 @@ func AddMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
 func UpdateMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 	id := c.Param("id")
-	analogID := c.Param("analog_id")
 	bodyInterface, _ := c.Get("body")
 	body := utils.InterfaceToMap(bodyInterface)
 	magnitude := models.Magnitude{}
 
-	SettingError := magnitude.UpdateAnalogUnit(id, analogID, body["analog_unit"], session)
+	SettingError := magnitude.UpdateAnalogUnit(id, body["analog_unit"], session)
 
 	if SettingError == nil {
 		response.Success(c, magnitude)

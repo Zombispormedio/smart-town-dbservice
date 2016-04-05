@@ -65,7 +65,7 @@ func Set(router *gin.Engine, session *mgo.Session) {
 					Analog.POST("", middleware.Admin(session.Copy()), middleware.Body(), Add)
 
 					Update := _default(controllers.UpdateMagnitudeAnalogUnit)
-					Analog.PUT("/:analog_id", middleware.Admin(session.Copy()), middleware.Body(), Update)
+					Analog.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
 
 				}
 

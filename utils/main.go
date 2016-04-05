@@ -1,5 +1,6 @@
 package utils
 
+
 type RequestError struct{
     Code int
     Message string
@@ -37,3 +38,4 @@ func Pick(obj map[string]string, pick_name []string)map[string]string{
     
     return result
 }
+
