@@ -21,29 +21,58 @@ func isTimeType(Type string, TypeValue string) bool {
 	return Type == "time.Time" && TypeValue == "string"
 }
 
-func SetValue(Worker reflect.Value, Field reflect.StructField, Value interface{}) {
+func isStruct(Kind string) bool{
+    return Kind=="struct"
+}
+
+func SetValue(Worker reflect.Value, Field reflect.StructField, Value interface{},LiteralTag string) {
 	InnerField := Worker.FieldByName(Field.Name)
 	Kind := InnerField.Kind().String()
-	Type := Field.Type.String()
+    Type :=Field.Type
+	TypeStr := Type.String()
 	TypeValue := reflect.TypeOf(Value).String()
 
-	fmt.Println("Kind: " + Kind + ",  Type: " + Type + ", TypeValue:" + TypeValue)
+	fmt.Println("Kind: " + Kind + ",  Type: " + TypeStr + ", TypeValue:" + TypeValue)
 	fmt.Println(Value)
 
 	switch {
-	case isStringType(Kind, Type):
+	case isStringType(Kind, TypeStr):
 		InnerField.SetString(Value.(string))
-	case isObjectIDType(Type, TypeValue):
+	case isObjectIDType(TypeStr, TypeValue):
 		ObjectID := bson.ObjectIdHex(Value.(string))
 		ObjectIDValue := reflect.ValueOf(ObjectID)
 		InnerField.Set(ObjectIDValue)
 
-	case isTimeType(Type, TypeValue):
-        Time, _:=time.Parse(time.RFC3339, Value.(string))
-        TimeValue:=reflect.ValueOf(Time)
-        InnerField.Set(TimeValue)
+	case isTimeType(TypeStr, TypeValue):
+		Time, _ := time.Parse(time.RFC3339, Value.(string))
+		TimeValue := reflect.ValueOf(Time)
+		InnerField.Set(TimeValue)
+
+	case isStruct(Kind):
+        
+        StructValue:=fillValueByMap(Type, Value, LiteralTag)
+        InnerField.Set(StructValue)
+        
 	}
 
+}
+
+func fillValueByMap(Type reflect.Type, Value interface{}, LiteralTag string) reflect.Value{
+    
+    Worker:=reflect.New(Type)
+    
+    Len := Type.NumField()
+
+	for i := 0; i < Len; i++ {
+		Inner := Type.Field(i)
+		KeyMap := Inner.Tag.Get(LiteralTag)
+		MapValue := Map[KeyMap]
+
+		SetValue(Worker, Inner, MapValue, LiteralTag)
+	}
+    
+    return Worker
+    
 }
 
 func FillByMap(Obj interface{}, Worker reflect.Value, Map map[string]interface{}, LiteralTag string) {
@@ -57,7 +86,7 @@ func FillByMap(Obj interface{}, Worker reflect.Value, Map map[string]interface{}
 		KeyMap := Inner.Tag.Get(LiteralTag)
 		Value := Map[KeyMap]
 
-		SetValue(Worker, Inner, Value)
+		SetValue(Worker, Inner, Value, LiteralTag)
 	}
 
 }
