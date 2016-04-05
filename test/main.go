@@ -9,70 +9,101 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func isStringType(Kind string, Type string) bool {
+func IsStringType(Kind string, Type string) bool {
 	return Kind == "string" && Type == "string"
 }
 
-func isObjectIDType(Type string, TypeValue string) bool {
+func IsObjectIDType(Type string, TypeValue string) bool {
 	return Type == "bson.ObjectId" && TypeValue == "string"
 }
 
-func isTimeType(Type string, TypeValue string) bool {
+func IsTimeType(Type string, TypeValue string) bool {
 	return Type == "time.Time" && TypeValue == "string"
 }
 
-func isStruct(Kind string) bool{
-    return Kind=="struct"
+func IsStructTypeAndMapKindValue(Kind string, KindValue reflect.Kind) bool {
+	return Kind == "struct" && KindValue == reflect.Map
 }
 
-func SetValue(Worker reflect.Value, Field reflect.StructField, Value interface{},LiteralTag string) {
-	InnerField := Worker.FieldByName(Field.Name)
-	Kind := InnerField.Kind().String()
-    Type :=Field.Type
-	TypeStr := Type.String()
-	TypeValue := reflect.TypeOf(Value).String()
+func IsSliceTypeAndMapKindValue(Kind string, KindValue reflect.Kind) bool {
+	return Kind == "slice" && KindValue == reflect.Map
+}
 
-	fmt.Println("Kind: " + Kind + ",  Type: " + TypeStr + ", TypeValue:" + TypeValue)
-	fmt.Println(Value)
+func MakeValue(KindField reflect.Kind, TypeField reflect.Type, RawValue interface{}, LiteralTag string) reflect.Value {
+	var Value reflect.Value
+
+	Kind := KindField.String()
+	TypeStr := TypeField.String()
+
+	TypeValue := reflect.TypeOf(RawValue)
+	TypeValueStr := TypeValue.String()
+
+	fmt.Println("Kind: " + Kind + ",  Type: " + TypeStr + ", TypeValue:" + TypeValueStr)
 
 	switch {
-	case isStringType(Kind, TypeStr):
-		InnerField.SetString(Value.(string))
-	case isObjectIDType(TypeStr, TypeValue):
-		ObjectID := bson.ObjectIdHex(Value.(string))
-		ObjectIDValue := reflect.ValueOf(ObjectID)
-		InnerField.Set(ObjectIDValue)
+	case IsStringType(Kind, TypeStr):
+		Value = reflect.ValueOf(RawValue)
 
-	case isTimeType(TypeStr, TypeValue):
-		Time, _ := time.Parse(time.RFC3339, Value.(string))
-		TimeValue := reflect.ValueOf(Time)
-		InnerField.Set(TimeValue)
+	case IsObjectIDType(TypeStr, TypeValueStr):
+		ObjectID := bson.ObjectIdHex(RawValue.(string))
+		Value = reflect.ValueOf(ObjectID)
 
-	case isStruct(Kind):
-        
-        StructValue:=fillValueByMap(Type, Value, LiteralTag)
-        InnerField.Set(StructValue)
-        
+	case IsTimeType(TypeStr, TypeValueStr):
+		Time, _ := time.Parse(time.RFC3339, RawValue.(string))
+		Value = reflect.ValueOf(Time)
+
+	case IsStructTypeAndMapKindValue(Kind, TypeValue.Kind()):
+		Value = fillValueByMap(TypeField, RawValue.(map[string]interface{}), LiteralTag)
+
+	/*case IsSliceTypeAndMapKindValue(Kind, TypeValue.Kind()):
+		Value = fillSliceByMap(TypeField, RawValue.([]interface{}), LiteralTag)*/
+
 	}
+
+	return Value
+}
+
+func SetValue(Worker reflect.Value, Field reflect.StructField, Value interface{}, LiteralTag string) {
+	InnerField := Worker.FieldByName(Field.Name)
+
+	NewValue := MakeValue(InnerField.Kind(), InnerField.Type(), Value, LiteralTag)
+	if NewValue.IsValid(){
+        InnerField.Set(NewValue)
+    }
+    
+
+	fmt.Println(Value)
 
 }
 
-func fillValueByMap(Type reflect.Type, Value interface{}, LiteralTag string) reflect.Value{
-    
-    Worker:=reflect.New(Type)
-    
-    Len := Type.NumField()
+func fillSliceByMap(Type reflect.Type, Slice []interface{}, LiteralTag string) reflect.Value {
+	l := len(Slice)
+	SliceValue := reflect.MakeSlice(Type, l, l).Elem()
+
+	/*for i := 0; i < l; i++ {
+		Elem := Slice[i]
+
+	}*/
+   
+	return SliceValue
+}
+
+func fillValueByMap(Type reflect.Type, Map map[string]interface{}, LiteralTag string) reflect.Value {
+
+	Worker := reflect.New(Type).Elem()
+
+	Len := Type.NumField()
 
 	for i := 0; i < Len; i++ {
 		Inner := Type.Field(i)
 		KeyMap := Inner.Tag.Get(LiteralTag)
 		MapValue := Map[KeyMap]
-
+		fmt.Println(KeyMap)
 		SetValue(Worker, Inner, MapValue, LiteralTag)
 	}
-    
-    return Worker
-    
+
+	return Worker
+
 }
 
 func FillByMap(Obj interface{}, Worker reflect.Value, Map map[string]interface{}, LiteralTag string) {
