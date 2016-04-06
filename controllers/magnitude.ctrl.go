@@ -122,7 +122,7 @@ func SetMagnitudeDigitalUnits(c *gin.Context, session *mgo.Session) {
 
 	magnitude := models.Magnitude{}
 
-	SettingError := magnitude.SetDigitalUnits(id, body["digital_units"], session)
+	SettingError := magnitude.SetDigitalUnits(id, body["digital_units"].(map[string]interface{}), session)
 
 	if SettingError == nil {
 		response.Success(c, magnitude)

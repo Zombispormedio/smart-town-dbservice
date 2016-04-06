@@ -51,7 +51,7 @@ func MakeValue(KindField reflect.Kind, TypeField reflect.Type, RawValue interfac
 
 	case IsStructTypeAndMapKindValue(Kind, TypeValue.Kind()):
 
-		Value = fillValueByMap(TypeField, RawValue.(map[string]interface{}), LiteralTag)
+		Value = fillStructByMap(TypeField, RawValue.(map[string]interface{}), LiteralTag)
 
 	case IsSliceType(Kind):
 
@@ -94,7 +94,7 @@ func fillSliceByMap(Type reflect.Type, RawValue interface{}, LiteralTag string) 
 	return SliceValue
 }
 
-func fillValueByMap(Type reflect.Type, Map map[string]interface{}, LiteralTag string) reflect.Value {
+func fillStructByMap(Type reflect.Type, Map map[string]interface{}, LiteralTag string) reflect.Value {
 
 	Worker := reflect.New(Type).Elem()
 
@@ -104,7 +104,10 @@ func fillValueByMap(Type reflect.Type, Map map[string]interface{}, LiteralTag st
 		Inner := Type.Field(i)
 		KeyMap := Inner.Tag.Get(LiteralTag)
 		MapValue := Map[KeyMap]
-		SetValue(Worker, Inner, MapValue, LiteralTag)
+		if MapValue != nil {
+			SetValue(Worker, Inner, MapValue, LiteralTag)
+		}
+
 	}
 
 	return Worker
@@ -120,9 +123,13 @@ func FillByMap(Obj interface{}, Worker reflect.Value, Map map[string]interface{}
 	for i := 0; i < Len; i++ {
 		Inner := Type.Field(i)
 		KeyMap := Inner.Tag.Get(LiteralTag)
-		Value := Map[KeyMap]
+		MapValue := Map[KeyMap]
 
-		SetValue(Worker, Inner, Value, LiteralTag)
+		if MapValue != nil {
+
+			SetValue(Worker, Inner, MapValue, LiteralTag)
+		}
+
 	}
 
 }
@@ -161,12 +168,12 @@ func main() {
 				"_id":          "57029e47c479e0beff645ea4",
 				"display_name": "wsddsdf",
 				"operation":    "wdsdff",
-				"unitA":        "5702a6d2c479e0beff645ea8",
-				"unitB":        "57029d66c479e0beff645e9d",
+				/*"unitA":        "5702a6d2c479e0beff645ea8",
+				"unitB":        "57029d66c479e0beff645e9d",*/
 			},
 		},
 		"created_by": "56e31e5018e1b981b1017672",
-		"created_at": time.Now().Format(time.RFC3339),
+		//"created_at": time.Now().Format(time.RFC3339),
 	}
 
 	Struct := models.Magnitude{}

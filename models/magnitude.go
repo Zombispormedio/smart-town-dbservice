@@ -3,9 +3,10 @@ package models
 import (
 	"fmt"
 	"time"
-
+        "reflect"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/utils"
+    "github.com/Zombispormedio/smartdb/struts"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -18,10 +19,18 @@ type Conversion struct {
 	UnitB       bson.ObjectId `bson:"unitB" json:"unitB"`
 }
 
+func (conversion *Conversion) FillByMap(Map map[string]interface{}, LiteralTag string){
+    struts.FillByMap(*conversion, reflect.ValueOf(conversion).Elem(), Map, LiteralTag)
+}
+
 type Digital struct {
 	ID  bson.ObjectId `bson:"_id,omitempty" json:"_id"`
 	ON  string        `bson:"on" json:"on"`
 	OFF string        `bson:"off" json:"off"`
+}
+
+func (digital *Digital) FillByMap(Map map[string]interface{}, LiteralTag string){
+    struts.FillByMap(*digital, reflect.ValueOf(digital).Elem(), Map, LiteralTag)
 }
 
 type Analog struct {
@@ -29,6 +38,11 @@ type Analog struct {
 	DisplayName string        `bson:"display_name" json:"display_name"`
 	Symbol      string        `bson:"symbol" json:"symbol"`
 }
+
+func (analog *Analog) FillByMap(Map map[string]interface{}, LiteralTag string){
+    struts.FillByMap(*analog, reflect.ValueOf(analog).Elem(), Map, LiteralTag)
+}
+
 
 type Magnitude struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
@@ -40,6 +54,11 @@ type Magnitude struct {
 	CreatedBy   bson.ObjectId `bson:"created_by" json:"created_by"`
 	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
 }
+
+func (magnitude *Magnitude) FillByMap(Map map[string]interface{}, LiteralTag string){
+    struts.FillByMap(*magnitude, reflect.ValueOf(magnitude).Elem(), Map, LiteralTag)
+}
+
 
 
 
@@ -55,6 +74,8 @@ type ListMagnitudeItem struct {
 
 
 
+
+
 func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Magnitude")
 }
@@ -63,8 +84,9 @@ func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
-	magnitude.DisplayName = obj["display_name"].(string)
-	magnitude.Type = obj["type"].(string)
+
+    magnitude.FillByMap(obj, "json")
+
 	magnitude.CreatedAt = bson.Now()
 	magnitude.CreatedBy = bson.ObjectIdHex(userID)
 
@@ -164,11 +186,17 @@ func ChangeOneSet(key string, value interface{}) mgo.Change {
 	}
 }
 
-func (magnitude *Magnitude) SetDigitalUnits(ID string, units interface{}, session *mgo.Session) *utils.RequestError {
+func (magnitude *Magnitude) SetDigitalUnits(ID string, units map[string]interface{}, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
 
-	change := ChangeOneSet("digital_units", units)
+    digital:=Digital{}
+    digital.FillByMap(units, "json")
+    
+    if  !digital.ID.Valid(){
+        digital.ID=bson.NewObjectId()
+    }
+	change := ChangeOneSet("digital_units",digital)
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &magnitude)
 
 	if UpdatingError != nil {
