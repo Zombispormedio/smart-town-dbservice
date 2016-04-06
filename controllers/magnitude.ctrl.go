@@ -141,7 +141,7 @@ func AddMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
 
 	magnitude := models.Magnitude{}
 
-	SettingError := magnitude.AddAnalogUnit(id, body["analog_unit"], session)
+	SettingError := magnitude.AddAnalogUnit(id, body["analog_unit"].(map[string]interface{}), session)
 
 	if SettingError == nil {
 		response.Success(c, magnitude)
@@ -158,7 +158,7 @@ func UpdateMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
 	body := utils.InterfaceToMap(bodyInterface)
 	magnitude := models.Magnitude{}
 
-	SettingError := magnitude.UpdateAnalogUnit(id, body["analog_unit"], session)
+	SettingError := magnitude.UpdateAnalogUnit(id, body["analog_unit"].(map[string]interface{}), session)
 
 	if SettingError == nil {
 		response.Success(c, magnitude)
@@ -166,4 +166,78 @@ func UpdateMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
 		response.Error(c, SettingError)
 
 	}
+}
+
+func DeleteMagnitudeAnalogUnit(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+	analogID := c.Param("analog_id")
+
+	magnitude := models.Magnitude{}
+
+	RemoveError := magnitude.DeleteAnalogUnit(id, analogID, session)
+
+	if RemoveError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, RemoveError)
+
+	}
+
+}
+
+
+func AddMagnitudeConversion(c *gin.Context, session *mgo.Session){
+    defer session.Close()
+	id := c.Param("id")
+    
+    bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	magnitude := models.Magnitude{}
+
+	SettingError := magnitude.AddConversion(id, body["conversion"].(map[string]interface{}), session)
+
+	if SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+
+func UpdateMagnitudeConversion(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+	magnitude := models.Magnitude{}
+
+	SettingError := magnitude.UpdateConversion(id, body["conversion"].(map[string]interface{}), session)
+
+	if SettingError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+func DeleteMagnitudeConversion(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+	conversionID := c.Param("conversion_id")
+
+	magnitude := models.Magnitude{}
+
+	RemoveError := magnitude.DeleteConversion(id, conversionID, session)
+
+	if RemoveError == nil {
+		response.Success(c, magnitude)
+	} else {
+		response.Error(c, RemoveError)
+
+	}
+
 }

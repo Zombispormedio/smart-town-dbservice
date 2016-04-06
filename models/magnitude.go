@@ -2,90 +2,79 @@ package models
 
 import (
 	"fmt"
+	"reflect"
 	"time"
-        "reflect"
+
 	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
-    "github.com/Zombispormedio/smartdb/struts"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type Conversion struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	DisplayName string        `bson:"display_name" json:"display_name"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
 	Operation   string        `bson:"operation" json:"operation"`
 	UnitA       bson.ObjectId `bson:"unitA" json:"unitA"`
 	UnitB       bson.ObjectId `bson:"unitB" json:"unitB"`
 }
 
-func (conversion *Conversion) FillByMap(Map map[string]interface{}, LiteralTag string){
-    struts.FillByMap(*conversion, reflect.ValueOf(conversion).Elem(), Map, LiteralTag)
+func (conversion *Conversion) FillByMap(Map map[string]interface{}, LiteralTag string) {
+	struts.FillByMap(*conversion, reflect.ValueOf(conversion).Elem(), Map, LiteralTag)
 }
 
 type Digital struct {
 	ID  bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	ON  string        `bson:"on" json:"on"`
-	OFF string        `bson:"off" json:"off"`
+	ON  string        `bson:"on"    json:"on"`
+	OFF string        `bson:"off"   json:"off"`
 }
 
-func (digital *Digital) FillByMap(Map map[string]interface{}, LiteralTag string){
-    struts.FillByMap(*digital, reflect.ValueOf(digital).Elem(), Map, LiteralTag)
+func (digital *Digital) FillByMap(Map map[string]interface{}, LiteralTag string) {
+	struts.FillByMap(*digital, reflect.ValueOf(digital).Elem(), Map, LiteralTag)
 }
 
 type Analog struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	DisplayName string        `bson:"display_name" json:"display_name"`
-	Symbol      string        `bson:"symbol" json:"symbol"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Symbol      string        `bson:"symbol"    json:"symbol"`
 }
 
-func (analog *Analog) FillByMap(Map map[string]interface{}, LiteralTag string){
-    struts.FillByMap(*analog, reflect.ValueOf(analog).Elem(), Map, LiteralTag)
+func (analog *Analog) FillByMap(Map map[string]interface{}, LiteralTag string) {
+	struts.FillByMap(*analog, reflect.ValueOf(analog).Elem(), Map, LiteralTag)
 }
-
 
 type Magnitude struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	DisplayName string        `bson:"display_name" json:"display_name"`
-	Type        string        `bson:"type" json:"type"`
-	AnalogUnits []Analog      `bson:"analog_units" json:"analog_units"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Type        string        `bson:"type"  json:"type"`
+	AnalogUnits []Analog      `bson:"analog_units"  json:"analog_units"`
 	DigitalUnit Digital       `bson:"digital_units" json:"digital_units"`
-	Conversions []Conversion  `bson:"conversions" json:"conversions"`
-	CreatedBy   bson.ObjectId `bson:"created_by" json:"created_by"`
-	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
+	Conversions []Conversion  `bson:"conversions"   json:"conversions"`
+	CreatedBy   bson.ObjectId `bson:"created_by"    json:"created_by"`
+	CreatedAt   time.Time     `bson:"created_at"    json:"created_at"`
 }
 
-func (magnitude *Magnitude) FillByMap(Map map[string]interface{}, LiteralTag string){
-    struts.FillByMap(*magnitude, reflect.ValueOf(magnitude).Elem(), Map, LiteralTag)
+func (magnitude *Magnitude) FillByMap(Map map[string]interface{}, LiteralTag string) {
+	struts.FillByMap(*magnitude, reflect.ValueOf(magnitude).Elem(), Map, LiteralTag)
 }
-
-
-
 
 type ListMagnitudeItem struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	DisplayName string        `bson:"display_name" json:"display_name"`
-	Type        string        `bson:"type" json:"type"`
-	CreatedBy   bson.ObjectId `bson:"created_by" json:"created_by"`
-	CreatedAt   time.Time     `bson:"created_at" json:"created_at"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Type        string        `bson:"type"  json:"type"`
+	CreatedBy   bson.ObjectId `bson:"created_by"    json:"created_by"`
+	CreatedAt   time.Time     `bson:"created_at"    json:"created_at"`
 }
-
-
-
-
-
-
 
 func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Magnitude")
 }
 
-
 func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
-
-    magnitude.FillByMap(obj, "json")
+	magnitude.FillByMap(obj, "json")
 
 	magnitude.CreatedAt = bson.Now()
 	magnitude.CreatedBy = bson.ObjectIdHex(userID)
@@ -190,13 +179,13 @@ func (magnitude *Magnitude) SetDigitalUnits(ID string, units map[string]interfac
 	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
 
-    digital:=Digital{}
-    digital.FillByMap(units, "json")
-    
-    if  !digital.ID.Valid(){
-        digital.ID=bson.NewObjectId()
-    }
-	change := ChangeOneSet("digital_units",digital)
+	digital := Digital{}
+	digital.FillByMap(units, "json")
+
+	if !digital.ID.Valid() {
+		digital.ID = bson.NewObjectId()
+	}
+	change := ChangeOneSet("digital_units", digital)
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &magnitude)
 
 	if UpdatingError != nil {
@@ -208,14 +197,16 @@ func (magnitude *Magnitude) SetDigitalUnits(ID string, units map[string]interfac
 
 }
 
-func (magnitude *Magnitude) AddAnalogUnit(ID string,  unit interface{}, session *mgo.Session) *utils.RequestError {
+func (magnitude *Magnitude) AddAnalogUnit(ID string, unit map[string]interface{}, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
-    
-    preAnalog:=unit.(map[string]interface{})
-    
-    analog:=Analog{ID: bson.NewObjectId(), DisplayName: preAnalog["display_name"].(string)}
-    
+
+	analog := Analog{}
+	analog.FillByMap(unit, "json")
+
+	if !analog.ID.Valid() {
+		analog.ID = bson.NewObjectId()
+	}
 
 	change := mgo.Change{
 		Update:    bson.M{"$addToSet": bson.M{"analog_units": analog}},
@@ -231,22 +222,113 @@ func (magnitude *Magnitude) AddAnalogUnit(ID string,  unit interface{}, session 
 	return Error
 }
 
-func (magnitude *Magnitude) UpdateAnalogUnit(ID string, unit interface{}, session *mgo.Session) *utils.RequestError {
+func (magnitude *Magnitude) UpdateAnalogUnit(ID string, unit map[string]interface{}, session *mgo.Session) *utils.RequestError {
 
 	var Error *utils.RequestError
-	/*c := MagnitudeCollection(session)
-    analogID:=unit.(map[string]interface{})["id"]
-	    change := mgo.Change{
-			Update:    bson.M{"$set": bson.M{"analog_units.$": unit}},
-			ReturnNew: true,
-		}
+	c := MagnitudeCollection(session)
 
-	    _, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID), "analog_units._id": bson.ObjectIdHex(analogID.(string))}).Apply(change, &magnitude)
+	analog := Analog{}
+	analog.FillByMap(unit, "json")
 
-		if UpdatingError != nil {
-			Error = utils.BadRequestError("Error Updating  AnalogUnit" + ID)
-			fmt.Println(UpdatingError)
-		}*/
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"analog_units.$": analog}},
+		ReturnNew: true,
+	}
+
+	_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID), "analog_units._id": analog.ID}).Apply(change, &magnitude)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating  AnalogUnit" + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+
+}
+
+func (magnitude *Magnitude) DeleteAnalogUnit(ID string, analogID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+
+	change := mgo.Change{
+		Update:    bson.M{"$pull": bson.M{"analog_units": bson.M{"_id": bson.ObjectIdHex(analogID)}}},
+		ReturnNew: true,
+	}
+
+	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &magnitude)
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing AnalogUnit" + ID)
+		fmt.Println(RemoveError)
+	}
+
+	return Error
+
+}
+
+func (magnitude *Magnitude) AddConversion(ID string, unit map[string]interface{}, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+
+	conversion := Conversion{}
+	conversion.FillByMap(unit, "json")
+
+	if !conversion.ID.Valid() {
+		conversion.ID = bson.NewObjectId()
+	}
+
+	change := mgo.Change{
+		Update:    bson.M{"$addToSet": bson.M{"conversions": conversion}},
+		ReturnNew: true,
+	}
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &magnitude)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Pushing  Conversion: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+
+func (magnitude *Magnitude) UpdateConversion(ID string, inConversion map[string]interface{}, session *mgo.Session) *utils.RequestError {
+
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+
+	conversion := Conversion{}
+	conversion.FillByMap(inConversion, "json")
+
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"conversions.$": conversion}},
+		ReturnNew: true,
+	}
+
+	_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID), "conversions._id": conversion.ID}).Apply(change, &magnitude)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating  Conversion" + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+
+}
+
+func (magnitude *Magnitude) DeleteConversion(ID string, conversionID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
+
+	change := mgo.Change{
+		Update:    bson.M{"$pull": bson.M{"conversions": bson.M{"_id": bson.ObjectIdHex(conversionID)}}},
+		ReturnNew: true,
+	}
+
+	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &magnitude)
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing Conversion" + ID)
+		fmt.Println(RemoveError)
+	}
 
 	return Error
 
