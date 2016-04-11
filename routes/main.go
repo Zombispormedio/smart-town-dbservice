@@ -49,10 +49,10 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			{
 				ByID := _default(controllers.GetMagnitudeByID)
 				WithID.GET("", middleware.Admin(session.Copy()), ByID)
-                
+
 				Delete := _default(controllers.DeleteMagnitude)
 				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
-                
+
 				DisplayName := _default(controllers.SetMagnitudeDisplayName)
 				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
 
@@ -69,27 +69,33 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 					Update := _default(controllers.UpdateMagnitudeAnalogUnit)
 					Analog.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
-                    
-                    Delete := _default(controllers.DeleteMagnitudeAnalogUnit)
+
+					Delete := _default(controllers.DeleteMagnitudeAnalogUnit)
 					Analog.DELETE(":analog_id", middleware.Admin(session.Copy()), Delete)
 
 				}
-                
-                Conversion := WithID.Group("conversion")
+
+				Conversion := WithID.Group("conversion")
 				{
 					Add := _default(controllers.AddMagnitudeConversion)
 					Conversion.POST("", middleware.Admin(session.Copy()), middleware.Body(), Add)
 
-                    Update := _default(controllers.UpdateMagnitudeConversion)
+					Update := _default(controllers.UpdateMagnitudeConversion)
 					Conversion.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
-                    
-                    Delete := _default(controllers.DeleteMagnitudeConversion)
+
+					Delete := _default(controllers.DeleteMagnitudeConversion)
 					Conversion.DELETE(":conversion_id", middleware.Admin(session.Copy()), Delete)
 				}
 
 			}
 
 		}
+        
+        zones := api.Group("/zone")
+        {
+            Create := _default(controllers.CreateZone)
+			zones.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+        }
 
 	}
 

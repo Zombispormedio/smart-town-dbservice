@@ -57,6 +57,9 @@ func MakeValue(KindField reflect.Kind, TypeField reflect.Type, RawValue interfac
 
 		Value = fillSliceByMap(TypeField, RawValue, LiteralTag)
 
+	default:
+		Value = reflect.ValueOf(RawValue)
+
 	}
 
 	return Value

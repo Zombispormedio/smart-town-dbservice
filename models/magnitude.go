@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"time"
-
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
