@@ -27,6 +27,7 @@ func (shape *GeoShape) FillByMap(Map map[string]interface{}, LiteralTag string) 
 type Zone struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
 	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Description string        `bson:"description"  json:"description"`
 	Keywords    []string      `bson:"keywords" json:"keywords"`
 	Center      []float64     `bson:"center" json:"center"`
 	Shape       GeoShape      `bson:"shape" json:"shape"`
@@ -58,6 +59,102 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 		Error = utils.BadRequestError("Error Inserting Zone")
 		fmt.Println(InsertError)
 	}
+
+	return Error
+}
+
+func GetZones(zones *[]Zone, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := ZoneCollection(session)
+
+	iter := c.Find(nil).Iter()
+
+	IterError := iter.All(zones)
+
+	if IterError != nil {
+		Error = utils.BadRequestError("Error All Zones")
+		fmt.Println(IterError)
+	}
+
+	return Error
+}
+
+func DeleteZone(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := ZoneCollection(session)
+
+	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
+
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing Zone: " + ID)
+		fmt.Println(RemoveError)
+	}
+
+	return Error
+}
+
+func (zone *Zone) ByID(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := ZoneCollection(session)
+
+	FindingError := c.FindId(bson.ObjectIdHex(ID)).One(zone)
+
+	if FindingError != nil {
+		Error = utils.BadRequestError("Error Finding Zone: " + ID)
+		fmt.Println(FindingError)
+	}
+
+	return Error
+}
+
+func (zone *Zone) SetDisplayName(ID string, DisplayName string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := ZoneCollection(session)
+	change := ChangeOneSet("display_name", DisplayName)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Zone: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (zone *Zone) SetDescription(ID string, Description string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := ZoneCollection(session)
+	change := ChangeOneSet("description", Description)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Zone: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (zone *Zone) SetKeywords(ID string, inKeywords interface{}, session *mgo.Session) *utils.RequestError {
+
+	var Error *utils.RequestError
+	
+    keywords:=utils.InterfaceToStringArray(inKeywords)
+    
+    c := ZoneCollection(session)
+	change := ChangeOneSet("keywords", keywords)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Zone: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	
 
 	return Error
 }

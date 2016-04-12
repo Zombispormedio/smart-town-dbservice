@@ -90,12 +90,33 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			}
 
 		}
-        
-        zones := api.Group("/zone")
-        {
-            Create := _default(controllers.CreateZone)
-			zones.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
-        }
+
+		zone := api.Group("/zone")
+		{
+			Create := _default(controllers.CreateZone)
+			zone.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+
+			All := _default(controllers.GetZones)
+			zone.GET("", middleware.Admin(session.Copy()), All)
+			WithID := zone.Group("/:id")
+			{
+
+				ByID := _default(controllers.GetZoneByID)
+				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+
+				Delete := _default(controllers.DeleteZone)
+				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+
+				DisplayName := _default(controllers.SetZoneDisplayName)
+				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+
+				Description := _default(controllers.SetZoneDescription)
+				WithID.PUT("/description", middleware.Admin(session.Copy()), middleware.Body(), Description)
+                
+                Keywords := _default(controllers.SetZoneKeywords)
+				WithID.PUT("/keywords", middleware.Admin(session.Copy()), middleware.Body(), Keywords)
+			}
+		}
 
 	}
 

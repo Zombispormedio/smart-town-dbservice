@@ -1,5 +1,8 @@
 package utils
 
+import(
+    "reflect"
+)
 
 type RequestError struct{
     Code int
@@ -37,5 +40,15 @@ func Pick(obj map[string]string, pick_name []string)map[string]string{
     }
     
     return result
+}
+
+func InterfaceToStringArray(in interface{}) []string{
+    s := reflect.ValueOf(in)
+	out := make([]string, s.Len())
+    
+	for i := 0; i < s.Len(); i++ {
+		out[i]=s.Index(i).Interface().(string)
+	}
+    return out
 }
 
