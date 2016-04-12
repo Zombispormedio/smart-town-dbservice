@@ -22,9 +22,53 @@ func CreateSensorGrid(c *gin.Context, session *mgo.Session) {
 	NewSensorGridError := sensorGrid.New(body, user, session)
 
 	if NewSensorGridError == nil {
-		response.SuccessMessage(c, "Sensor Created")
+		response.SuccessMessage(c, "Sensor Grid Created")
 	} else {
 		response.Error(c, NewSensorGridError)
 	}
 
+}
+
+
+func GetSensorGrids(c *gin.Context, session *mgo.Session) {
+    
+    defer session.Close()
+
+	var result []models.SensorGrid
+
+	GetAllError := models.GetSensorGrids(&result, session)
+	if GetAllError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, GetAllError)
+	}
+}
+
+func GetSensorGridByID(c *gin.Context, session *mgo.Session) {
+    defer session.Close()
+	id := c.Param("id")
+
+	sensorGrid := models.SensorGrid{}
+
+	ByIdError := sensorGrid.ByID(id, session)
+
+	if ByIdError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, ByIdError)
+
+	}
+}
+
+func DeleteSensorGrid(c *gin.Context, session *mgo.Session) {
+    id := c.Param("id")
+
+	RemoveError := models.DeleteSensorGrid(id, session)
+
+	if RemoveError == nil {
+		GetSensorGrids(c, session)
+	} else {
+		response.Error(c, RemoveError)
+		session.Close()
+	}
 }

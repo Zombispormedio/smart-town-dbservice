@@ -2,13 +2,13 @@ package utils
 
 import(
     "reflect"
+ 
 )
 
 type RequestError struct{
     Code int
     Message string
 }
-
 
 
 func BadRequestError(msg string) *RequestError{

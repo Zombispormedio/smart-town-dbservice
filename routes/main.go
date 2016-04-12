@@ -126,7 +126,17 @@ func Set(router *gin.Engine, session *mgo.Session) {
 		{
             Create := _default(controllers.CreateSensorGrid)
 			sensorGrid.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+            All := _default(controllers.GetSensorGrids)
+			sensorGrid.GET("", middleware.Admin(session.Copy()), All)
             
+            WithID := sensorGrid.Group("/:id")
+			{
+				ByID := _default(controllers.GetSensorGridByID)
+				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+
+				Delete := _default(controllers.DeleteSensorGrid)
+				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+            }
         }
 
 	}
