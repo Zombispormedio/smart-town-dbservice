@@ -135,3 +135,24 @@ func SetZoneKeywords(c *gin.Context, session *mgo.Session) {
 
 	}
 }
+
+
+func  SetZoneShape(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	zone := models.Zone{}
+
+	SettingError := zone.SetShape(id, body["shape"], session)
+
+	if SettingError == nil {
+		response.Success(c, zone)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+

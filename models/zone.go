@@ -158,3 +158,29 @@ func (zone *Zone) SetKeywords(ID string, inKeywords interface{}, session *mgo.Se
 
 	return Error
 }
+
+
+
+
+func (zone *Zone) SetShape(ID string, inShape interface{}, session *mgo.Session) *utils.RequestError {
+
+	var Error *utils.RequestError
+    
+    shapeMap:=utils.InterfaceToMap(inShape)
+	shape:= GeoShape{}
+    shape.FillByMap(shapeMap, "json")
+    
+    c := ZoneCollection(session)
+	change := ChangeOneSet("shape", shape)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Zone: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	
+
+	return Error
+}

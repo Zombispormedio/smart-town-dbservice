@@ -115,6 +115,10 @@ func Set(router *gin.Engine, session *mgo.Session) {
                 
                 Keywords := _default(controllers.SetZoneKeywords)
 				WithID.PUT("/keywords", middleware.Admin(session.Copy()), middleware.Body(), Keywords)
+                
+                Shape := _default(controllers.SetZoneShape)
+				WithID.PUT("/shape", middleware.Admin(session.Copy()), middleware.Body(), Shape)
+                
 			}
 		}
 
