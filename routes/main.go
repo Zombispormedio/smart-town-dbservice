@@ -121,6 +121,13 @@ func Set(router *gin.Engine, session *mgo.Session) {
                 
 			}
 		}
+        
+       sensorGrid := api.Group("/sensor_grid")
+		{
+            Create := _default(controllers.CreateSensorGrid)
+			sensorGrid.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+            
+        }
 
 	}
 
