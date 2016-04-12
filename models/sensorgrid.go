@@ -37,7 +37,8 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 	sensorGrid.FillByMap(obj, "json")
     newID, _:=uuid.NewV4()
     sensorGrid.ClientID=newID.String()
-   ///  sensorGrid.ClientSecret=utils.generateSecretToken(15)
+    
+    sensorGrid.ClientSecret=utils.GenerateSecretToken(47)
 	sensorGrid.CreatedAt = bson.Now()
 	sensorGrid.CreatedBy = bson.ObjectIdHex(userID)
 

@@ -13,8 +13,8 @@ const (
 )
 
  var src=rand.NewSource(time.Now().UnixNano())
-/*
-func generateSecretToken(n int) string{
+
+func GenerateSecretToken(n int) string{
    
     b :=make([]byte, n)
     
@@ -31,4 +31,4 @@ func generateSecretToken(n int) string{
     }
     
     return string(b)
-}*/
+}

@@ -10,6 +10,9 @@ type RequestError struct{
     Message string
 }
 
+func hello(){
+    
+}
 
 func BadRequestError(msg string) *RequestError{
     return &RequestError{Code:400, Message:msg}
@@ -51,4 +54,3 @@ func InterfaceToStringArray(in interface{}) []string{
 	}
     return out
 }
-
