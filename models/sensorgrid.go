@@ -15,8 +15,8 @@ import (
 
 type SensorGrid struct {
 	ID           bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	ClientID     string        `bson:"client_id,omitempty" json:"client_id"`
-	ClientSecret string        `bson:"client_secret",omitempty" json:"client_secret"`
+	ClientID     string        `bson:"client_id" json:"client_id"`
+	ClientSecret string        `bson:"client_secret" json:"client_secret"`
 	DisplayName  string        `bson:"display_name"  json:"display_name"`
 	Zone         bson.ObjectId `bson:"zone" json:"zone"`
 	CreatedBy    bson.ObjectId `bson:"created_by"    json:"created_by"`
