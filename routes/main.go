@@ -136,6 +136,12 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				Delete := _default(controllers.DeleteSensorGrid)
 				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+                
+                Secret := _default(controllers.ChangeSensorGridSecret)
+				WithID.GET("/secret", middleware.Admin(session.Copy()), Secret)
+                
+                CommunicationCenter := _default(controllers.SetSensorGridCommunicationCenter)
+				WithID.PUT("/communication_center", middleware.Admin(session.Copy()), middleware.Body(), CommunicationCenter)
             }
         }
 

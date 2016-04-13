@@ -29,10 +29,9 @@ func CreateSensorGrid(c *gin.Context, session *mgo.Session) {
 
 }
 
-
 func GetSensorGrids(c *gin.Context, session *mgo.Session) {
-    
-    defer session.Close()
+
+	defer session.Close()
 
 	var result []models.SensorGrid
 
@@ -45,7 +44,7 @@ func GetSensorGrids(c *gin.Context, session *mgo.Session) {
 }
 
 func GetSensorGridByID(c *gin.Context, session *mgo.Session) {
-    defer session.Close()
+	defer session.Close()
 	id := c.Param("id")
 
 	sensorGrid := models.SensorGrid{}
@@ -61,7 +60,7 @@ func GetSensorGridByID(c *gin.Context, session *mgo.Session) {
 }
 
 func DeleteSensorGrid(c *gin.Context, session *mgo.Session) {
-    id := c.Param("id")
+	id := c.Param("id")
 
 	RemoveError := models.DeleteSensorGrid(id, session)
 
@@ -71,4 +70,41 @@ func DeleteSensorGrid(c *gin.Context, session *mgo.Session) {
 		response.Error(c, RemoveError)
 		session.Close()
 	}
+}
+
+func ChangeSensorGridSecret(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.ChangeSecret(id, session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+func SetSensorGridCommunicationCenter(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.SetCommunicationCenter(id, body, session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
 }
