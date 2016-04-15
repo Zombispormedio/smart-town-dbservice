@@ -156,14 +156,15 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				WithID.PUT("/location", middleware.Admin(session.Copy()), middleware.Body(), Location)
 			}
 		}
+		sensor := api.Group("/sensor")
+		{
+			Create := _default(controllers.CreateSensor)
+			sensor.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+		}
+		
 
 	}
 
-	sensor := router.Group("/sensor")
-	sensor.Use(middleware.Sensor())
-	{
-
-	}
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(404,
