@@ -58,13 +58,6 @@ func (magnitude *Magnitude) FillByMap(Map map[string]interface{}, LiteralTag str
 	struts.FillByMap(*magnitude, reflect.ValueOf(magnitude).Elem(), Map, LiteralTag)
 }
 
-type ListMagnitudeItem struct {
-	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	DisplayName string        `bson:"display_name"  json:"display_name"`
-	Type        string        `bson:"type"  json:"type"`
-	CreatedBy   bson.ObjectId `bson:"created_by"    json:"created_by"`
-	CreatedAt   time.Time     `bson:"created_at"    json:"created_at"`
-}
 
 func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Magnitude")
@@ -90,7 +83,7 @@ func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, sessi
 	return Error
 }
 
-func GetMagnitudes(magnitudes *[]ListMagnitudeItem, session *mgo.Session) *utils.RequestError {
+func GetMagnitudes(magnitudes *[]Magnitude, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
 

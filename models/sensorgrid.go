@@ -22,6 +22,7 @@ type SensorGrid struct {
 	Description  string        `bson:"description"  json:"description"`
 	Location     []float64     `bson:"location" json:"location"`
 	Zone         bson.ObjectId `bson:"zone" json:"zone"`
+	Sensors		 []bson.ObjectId `bson:"sensors" json:"sensors"`
 	CreatedBy    bson.ObjectId `bson:"created_by"    json:"created_by"`
 	CreatedAt    time.Time     `bson:"created_at"    json:"created_at"`
 }
