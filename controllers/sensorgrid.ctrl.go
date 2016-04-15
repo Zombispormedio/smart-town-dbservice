@@ -108,3 +108,86 @@ func SetSensorGridCommunicationCenter(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+func SetSensorGridDisplayName(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.SetDisplayName(id, body["display_name"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
+
+func SetSensorGridZone(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.SetZone(id, body["zone"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
+
+func AllowAccessSensorGrid(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.AllowAccess(id, session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+
+
+
+
+func SetSensorGridLocation(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.SetLocation(id, body["location"], session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}

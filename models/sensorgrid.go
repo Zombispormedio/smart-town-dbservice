@@ -20,10 +20,10 @@ type SensorGrid struct {
 	DisplayName  string        `bson:"display_name"  json:"display_name"`
 	DeviceName   string        `bson:"device_name"  json:"device_name"`
 	Description  string        `bson:"description"  json:"description"`
-
-	Zone      bson.ObjectId `bson:"zone" json:"zone"`
-	CreatedBy bson.ObjectId `bson:"created_by"    json:"created_by"`
-	CreatedAt time.Time     `bson:"created_at"    json:"created_at"`
+	Location     []float64     `bson:"location" json:"location"`
+	Zone         bson.ObjectId `bson:"zone" json:"zone"`
+	CreatedBy    bson.ObjectId `bson:"created_by"    json:"created_by"`
+	CreatedAt    time.Time     `bson:"created_at"    json:"created_at"`
 }
 
 func (sensorGrid *SensorGrid) FillByMap(Map map[string]interface{}, LiteralTag string) {
@@ -109,7 +109,7 @@ func (sensorGrid *SensorGrid) ChangeSecret(ID string, session *mgo.Session) *uti
 	secret := utils.GenerateSecretToken(47)
 	change := ChangeOneSet("client_secret", secret)
 
-	_, UpdatingError := c.Find(bson.M{"_id":bson.ObjectIdHex(ID), "client_secret":bson.M{"$ne":nil}}).Apply(change, &sensorGrid)
+	_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID), "client_secret": bson.M{"$ne": nil}}).Apply(change, &sensorGrid)
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("No Allow Access: " + ID)
@@ -123,12 +123,85 @@ func (sensorGrid *SensorGrid) SetCommunicationCenter(ID string, Comm map[string]
 	var Error *utils.RequestError
 
 	c := SensorGridCollection(session)
- 
-    
+
 	change := mgo.Change{
 		Update:    bson.M{"$set": bson.M{"device_name": Comm["device_name"], "description": Comm["description"]}},
 		ReturnNew: true,
 	}
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensorGrid *SensorGrid) SetDisplayName(ID string, DisplayName string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+	change := ChangeOneSet("display_name", DisplayName)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensorGrid *SensorGrid) SetZone(ID string, ZoneID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+	change := ChangeOneSet("zone", bson.ObjectIdHex(ZoneID))
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensorGrid *SensorGrid) AllowAccess(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	var change mgo.Change
+	c := SensorGridCollection(session)
+
+	temp := SensorGrid{}
+	err := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&temp)
+	fmt.Println(err)
+
+	if temp.ClientSecret != "" {
+		change = ChangeOneSet("client_secret", nil)
+	} else {
+		secret := utils.GenerateSecretToken(47)
+		change = ChangeOneSet("client_secret", secret)
+	}
+
+	_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &sensorGrid)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("No Allow Access: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+
+
+
+func (sensorGrid *SensorGrid) SetLocation(ID string, location interface{}, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+	change := ChangeOneSet("location",  location)
 
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
 

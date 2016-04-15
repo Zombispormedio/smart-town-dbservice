@@ -112,38 +112,50 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				Description := _default(controllers.SetZoneDescription)
 				WithID.PUT("/description", middleware.Admin(session.Copy()), middleware.Body(), Description)
-                
-                Keywords := _default(controllers.SetZoneKeywords)
+
+				Keywords := _default(controllers.SetZoneKeywords)
 				WithID.PUT("/keywords", middleware.Admin(session.Copy()), middleware.Body(), Keywords)
-                
-                Shape := _default(controllers.SetZoneShape)
+
+				Shape := _default(controllers.SetZoneShape)
 				WithID.PUT("/shape", middleware.Admin(session.Copy()), middleware.Body(), Shape)
-                
+
 			}
 		}
-        
-       sensorGrid := api.Group("/sensor_grid")
+
+		sensorGrid := api.Group("/sensor_grid")
 		{
-            Create := _default(controllers.CreateSensorGrid)
+			Create := _default(controllers.CreateSensorGrid)
 			sensorGrid.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
-            All := _default(controllers.GetSensorGrids)
+			All := _default(controllers.GetSensorGrids)
 			sensorGrid.GET("", middleware.Admin(session.Copy()), All)
-            
-            WithID := sensorGrid.Group("/:id")
+
+			WithID := sensorGrid.Group("/:id")
 			{
 				ByID := _default(controllers.GetSensorGridByID)
 				WithID.GET("", middleware.Admin(session.Copy()), ByID)
 
 				Delete := _default(controllers.DeleteSensorGrid)
 				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
-                
-                Secret := _default(controllers.ChangeSensorGridSecret)
+
+				Secret := _default(controllers.ChangeSensorGridSecret)
 				WithID.GET("/secret", middleware.Admin(session.Copy()), Secret)
-                
-                CommunicationCenter := _default(controllers.SetSensorGridCommunicationCenter)
+
+				CommunicationCenter := _default(controllers.SetSensorGridCommunicationCenter)
 				WithID.PUT("/communication_center", middleware.Admin(session.Copy()), middleware.Body(), CommunicationCenter)
-            }
-        }
+
+				DisplayName := _default(controllers.SetSensorGridDisplayName)
+				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+
+				Zone := _default(controllers.SetSensorGridZone)
+				WithID.PUT("/zone", middleware.Admin(session.Copy()), middleware.Body(), Zone)
+
+				AllowAccess := _default(controllers.AllowAccessSensorGrid)
+				WithID.GET("/access", middleware.Admin(session.Copy()), AllowAccess)
+				
+				Location := _default(controllers.SetSensorGridLocation)
+				WithID.PUT("/location", middleware.Admin(session.Copy()), middleware.Body(), Location)
+			}
+		}
 
 	}
 
