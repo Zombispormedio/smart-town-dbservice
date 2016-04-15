@@ -109,10 +109,10 @@ func (sensorGrid *SensorGrid) ChangeSecret(ID string, session *mgo.Session) *uti
 	secret := utils.GenerateSecretToken(47)
 	change := ChangeOneSet("client_secret", secret)
 
-	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
+	_, UpdatingError := c.Find(bson.M{"_id":bson.ObjectIdHex(ID), "client_secret":bson.M{"$ne":nil}}).Apply(change, &sensorGrid)
 
 	if UpdatingError != nil {
-		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
+		Error = utils.BadRequestError("No Allow Access: " + ID)
 		fmt.Println(UpdatingError)
 	}
 
