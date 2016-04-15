@@ -43,10 +43,10 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 	var Error *utils.RequestError
 
 	sensor.FillByMap(obj, "json")
+    sensor.ID=bson.NewObjectId();
+    
 	newID, _ := uuid.NewV4()
 	sensor.NodeID = newID.String()
-
-	
 	sensor.CreatedAt = bson.Now()
 	sensor.CreatedBy = bson.ObjectIdHex(userID)
 
@@ -57,6 +57,62 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 	if InsertError != nil {
 		Error = utils.BadRequestError("Error Inserting Sensor")
 		fmt.Println(InsertError)
+		return Error
+
+	}
+
+	sensorGrid := SensorGridCollection(session)
+
+	UpdatingError := sensorGrid.UpdateId(sensor.SensorGrid, bson.M{"$addToSet": bson.M{"sensors": sensor.ID}})
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Pushing  Sensor i SensorGrid: " +sensor.SensorGrid.String() )
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func GetSensors(sensors *[]Sensor, sensorGrid string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+
+	iter := c.Find(bson.M{"sensor_grid": bson.ObjectIdHex(sensorGrid)}).Iter()
+
+	IterError := iter.All(sensors)
+
+	if IterError != nil {
+		Error = utils.BadRequestError("Error All Sensors")
+		fmt.Println(IterError)
+	}
+
+	return Error
+}
+
+func (sensor *Sensor) ByID(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := SensorCollection(session)
+
+	FindingError := c.FindId(bson.ObjectIdHex(ID)).One(sensor)
+
+	if FindingError != nil {
+		Error = utils.BadRequestError("Error Finding Sensor: " + ID)
+		fmt.Println(FindingError)
+	}
+
+	return Error
+}
+
+func DeleteSensor(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+
+	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
+
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing Sensor: " + ID)
+		fmt.Println(RemoveError)
 	}
 
 	return Error

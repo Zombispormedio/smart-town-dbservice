@@ -32,7 +32,7 @@ func CreateZone(c *gin.Context, session *mgo.Session) {
 func GetZones(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
-	var result []models.Zone
+	result:= []models.Zone{}
 
 	GetAllError := models.GetZones(&result, session)
 	if GetAllError == nil {

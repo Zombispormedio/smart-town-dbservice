@@ -33,7 +33,7 @@ func GetSensorGrids(c *gin.Context, session *mgo.Session) {
 
 	defer session.Close()
 
-	var result []models.SensorGrid
+	result:= []models.SensorGrid{}
 
 	GetAllError := models.GetSensorGrids(&result, session)
 	if GetAllError == nil {
@@ -49,12 +49,12 @@ func GetSensorGridByID(c *gin.Context, session *mgo.Session) {
 
 	sensorGrid := models.SensorGrid{}
 
-	ByIdError := sensorGrid.ByID(id, session)
+	ByIDError := sensorGrid.ByID(id, session)
 
-	if ByIdError == nil {
+	if ByIDError == nil {
 		response.Success(c, sensorGrid)
 	} else {
-		response.Error(c, ByIdError)
+		response.Error(c, ByIDError)
 
 	}
 }

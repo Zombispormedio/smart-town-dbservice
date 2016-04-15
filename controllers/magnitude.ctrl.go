@@ -32,7 +32,7 @@ func CreateMagnitude(c *gin.Context, session *mgo.Session) {
 func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
-	var result []models.Magnitude
+	result:= []models.Magnitude{}
 
 	GetAllError := models.GetMagnitudes(&result, session)
 	if GetAllError == nil {

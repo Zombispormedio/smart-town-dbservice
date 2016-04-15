@@ -28,3 +28,33 @@ func CreateSensor(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+func GetSensors(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+	result:= []models.Sensor{}
+
+	GetAllError := models.GetSensors(&result,id, session)
+	if GetAllError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, GetAllError)
+	}
+}
+
+func GetSensorByID(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	sensor := models.Sensor{}
+
+	ByIDError := sensor.ByID(id, session)
+
+	if ByIDError == nil {
+		response.Success(c, sensor)
+	} else {
+		response.Error(c, ByIDError)
+
+	}
+}

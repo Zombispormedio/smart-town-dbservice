@@ -151,20 +151,30 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				AllowAccess := _default(controllers.AllowAccessSensorGrid)
 				WithID.GET("/access", middleware.Admin(session.Copy()), AllowAccess)
-				
+
 				Location := _default(controllers.SetSensorGridLocation)
 				WithID.PUT("/location", middleware.Admin(session.Copy()), middleware.Body(), Location)
+
+				All := _default(controllers.GetSensors)
+				WithID.GET("/sensors", middleware.Admin(session.Copy()), All)
 			}
 		}
 		sensor := api.Group("/sensor")
 		{
 			Create := _default(controllers.CreateSensor)
 			sensor.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+
+			WithID := sensor.Group("/:id")
+			{
+				ByID := _default(controllers.GetSensorByID)
+				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+
+				
+			}
+
 		}
-		
 
 	}
-
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(404,
