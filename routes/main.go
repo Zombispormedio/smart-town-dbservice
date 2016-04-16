@@ -187,6 +187,23 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			}
 
 		}
+		
+		task:=api.Group("/task")
+		{
+			Create := _default(controllers.CreateTask)
+			task.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+			All := _default(controllers.GetTasks)
+			task.GET("", middleware.Admin(session.Copy()), All)
+			
+			WithID := task.Group("/:id")
+			{
+				Update := _default(controllers.UpdateTask)
+				WithID.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
+				Delete := _default(controllers.DeleteTask)
+				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+			}
+			
+		}
 
 	}
 
