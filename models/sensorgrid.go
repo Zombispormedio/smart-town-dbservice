@@ -14,17 +14,17 @@ import (
 )
 
 type SensorGrid struct {
-	ID           bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	ClientID     string        `bson:"client_id" json:"client_id"`
-	ClientSecret string        `bson:"client_secret" json:"client_secret"`
-	DisplayName  string        `bson:"display_name"  json:"display_name"`
-	DeviceName   string        `bson:"device_name"  json:"device_name"`
-	Description  string        `bson:"description"  json:"description"`
-	Location     []float64     `bson:"location" json:"location"`
-	Zone         bson.ObjectId `bson:"zone" json:"zone"`
-	Sensors		 []bson.ObjectId `bson:"sensors" json:"sensors"`
-	CreatedBy    bson.ObjectId `bson:"created_by"    json:"created_by"`
-	CreatedAt    time.Time     `bson:"created_at"    json:"created_at"`
+	ID           bson.ObjectId   `bson:"_id,omitempty" json:"_id"`
+	ClientID     string          `bson:"client_id" json:"client_id"`
+	ClientSecret string          `bson:"client_secret" json:"client_secret"`
+	DisplayName  string          `bson:"display_name"  json:"display_name"`
+	DeviceName   string          `bson:"device_name"  json:"device_name"`
+	Description  string          `bson:"description"  json:"description"`
+	Location     []float64       `bson:"location" json:"location"`
+	Zone         bson.ObjectId   `bson:"zone" json:"zone"`
+	Sensors      []bson.ObjectId `bson:"sensors" json:"sensors"`
+	CreatedBy    bson.ObjectId   `bson:"created_by"    json:"created_by"`
+	CreatedAt    time.Time       `bson:"created_at"    json:"created_at"`
 }
 
 func (sensorGrid *SensorGrid) FillByMap(Map map[string]interface{}, LiteralTag string) {
@@ -196,19 +196,42 @@ func (sensorGrid *SensorGrid) AllowAccess(ID string, session *mgo.Session) *util
 	return Error
 }
 
-
-
-
 func (sensorGrid *SensorGrid) SetLocation(ID string, location interface{}, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorGridCollection(session)
-	change := ChangeOneSet("location",  location)
+	change := ChangeOneSet("location", location)
 
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensorGrid)
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
 		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensorGrid *SensorGrid) UnsetSensor(ID string, sensorID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+
+	change := mgo.Change{
+		Update:    bson.M{"$pull": bson.M{"sensors": bson.ObjectIdHex(sensorID)}},
+		ReturnNew: true,
+	}
+
+	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &sensorGrid)
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error RemovingSensor" + ID)
+		fmt.Println(RemoveError)
+		return Error
+	}
+
+	InternalError := DeleteSensor(sensorID, session)
+	if InternalError != nil {
+		Error = utils.BadRequestError("Error RemovingSensor" + ID)
+		fmt.Println(InternalError)
+
 	}
 
 	return Error

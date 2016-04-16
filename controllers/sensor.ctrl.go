@@ -22,7 +22,7 @@ func CreateSensor(c *gin.Context, session *mgo.Session) {
 	NewSensorError := sensor.New(body, user, session)
 
 	if NewSensorError == nil {
-		response.SuccessMessage(c, "Sensorr Created")
+		response.SuccessMessage(c, "Sensor Created")
 	} else {
 		response.Error(c, NewSensorError)
 	}

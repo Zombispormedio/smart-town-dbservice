@@ -191,3 +191,22 @@ func SetSensorGridLocation(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+
+func DeleteSensorByGrid(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+	sensorID := c.Param("sensor_id")
+	
+	sensorGrid := models.SensorGrid{}
+
+	UnSettingError := sensorGrid.UnsetSensor(id,sensorID, session)
+
+	if UnSettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, UnSettingError)
+
+	}
+}

@@ -155,8 +155,15 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				Location := _default(controllers.SetSensorGridLocation)
 				WithID.PUT("/location", middleware.Admin(session.Copy()), middleware.Body(), Location)
 
-				All := _default(controllers.GetSensors)
-				WithID.GET("/sensors", middleware.Admin(session.Copy()), All)
+				sensors := WithID.Group("/sensors")
+				{
+					AllSensors := _default(controllers.GetSensors)
+					sensors.GET("", middleware.Admin(session.Copy()), AllSensors)
+
+					DelSensor := _default(controllers.DeleteSensorByGrid)
+					sensors.DELETE("/:sensor_id", middleware.Admin(session.Copy()), DelSensor)
+				}
+
 			}
 		}
 		sensor := api.Group("/sensor")
@@ -169,7 +176,6 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				ByID := _default(controllers.GetSensorByID)
 				WithID.GET("", middleware.Admin(session.Copy()), ByID)
 
-				
 			}
 
 		}
