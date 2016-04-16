@@ -95,7 +95,6 @@ func (sensor *Sensor) ByID(ID string, session *mgo.Session) *utils.RequestError 
 	c := SensorCollection(session)
 
 	FindingError := c.FindId(bson.ObjectIdHex(ID)).One(sensor)
-
 	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding Sensor: " + ID)
 		fmt.Println(FindingError)
@@ -113,6 +112,62 @@ func DeleteSensor(ID string, session *mgo.Session) *utils.RequestError {
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Sensor: " + ID)
 		fmt.Println(RemoveError)
+	}
+
+	return Error
+}
+
+
+func (sensor *Sensor)SetTransmissor(ID string, Trans map[string]interface{}, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := SensorCollection(session)
+
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"device_name": Trans["device_name"], "description": Trans["description"]}},
+		ReturnNew: true,
+	}
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensor)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensor *Sensor) SetDisplayName(ID string, DisplayName string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+	change := ChangeOneSet("display_name", DisplayName)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensor)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (sensor *Sensor) SetMagnitude(ID string, Magnitude map[string]interface{}, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := SensorCollection(session)
+
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"magnitude":  bson.ObjectIdHex(Magnitude["magnitude"].(string)),"unit":  Magnitude["unit"],"is_raw_data":  Magnitude["is_raw_data"],"raw_conversion":  Magnitude["raw_conversion"]}},
+		ReturnNew: true,
+	}
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &sensor)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
+		fmt.Println(UpdatingError)
 	}
 
 	return Error

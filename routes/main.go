@@ -176,6 +176,14 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				ByID := _default(controllers.GetSensorByID)
 				WithID.GET("", middleware.Admin(session.Copy()), ByID)
 
+				Transmissor := _default(controllers.SetSensorTransmissor)
+				WithID.PUT("/transmissor", middleware.Admin(session.Copy()), middleware.Body(), Transmissor)
+
+				DisplayName := _default(controllers.SetSensorDisplayName)
+				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+				
+				Magnitude := _default(controllers.SetSensorMagnitude)
+				WithID.PUT("/magnitude", middleware.Admin(session.Copy()), middleware.Body(), Magnitude)
 			}
 
 		}

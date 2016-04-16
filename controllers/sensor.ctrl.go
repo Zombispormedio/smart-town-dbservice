@@ -58,3 +58,69 @@ func GetSensorByID(c *gin.Context, session *mgo.Session) {
 
 	}
 }
+
+
+func SetSensorTransmissor(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensor := models.Sensor{}
+
+	SettingError := sensor.SetTransmissor(id, body, session)
+
+	if SettingError == nil {
+		response.Success(c, sensor)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
+
+
+
+func SetSensorDisplayName(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensor := models.Sensor{}
+
+	SettingError := sensor.SetDisplayName(id, body["display_name"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, sensor)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
+
+
+func SetSensorMagnitude(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	sensor := models.Sensor{}
+
+	SettingError := sensor.SetMagnitude(id, body, session)
+
+	if SettingError == nil {
+		response.Success(c, sensor)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
