@@ -92,6 +92,33 @@ func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.Reque
 func DeleteSensorGrid(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorGridCollection(session)
+	
+	sensorGrid:=SensorGrid{}
+	
+	FindingError:=c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&sensorGrid)
+	
+	if FindingError != nil {
+		fmt.Println(FindingError)
+		return utils.BadRequestError("Error Finding SensorGrid: " + ID)
+		
+	}
+	
+	count:=len(sensorGrid.Sensors)
+	var RemovingSensorsError *utils.RequestError
+	for index := 0;  index < count; index++ {
+		sensorID:=sensorGrid.Sensors[index].Hex()
+		RemovingSensorsError:=DeleteSensor(sensorID, session)
+		
+		if RemovingSensorsError != nil{
+			break;
+		}
+		
+	}
+	
+	if RemovingSensorsError != nil{
+		return RemovingSensorsError
+	}
+	
 
 	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
 
