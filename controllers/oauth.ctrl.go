@@ -187,7 +187,7 @@ func Invite(c *gin.Context, session *mgo.Session) {
 }
 
 
-func checkInvitation(c *gin.Context, session *mgo.Session) {
+func CheckInvitation(c *gin.Context, session *mgo.Session) {
 }
 
 func Invitation(c *gin.Context, session *mgo.Session) {

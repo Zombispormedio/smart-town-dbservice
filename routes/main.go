@@ -52,7 +52,7 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			oauth.POST("/invite", middleware.Admin(session.Copy()), middleware.Body(), Invitate)
 			
 			
-			CheckInvitation := _default(controllers.checkInvitation)
+			CheckInvitation := _default(controllers.CheckInvitation)
 			oauth.GET("/invitation/:code", middleware.Admin(session.Copy()), CheckInvitation)
 			Invitation := _default(controllers.Invitation)
 			oauth.POST("/invitation/:code", middleware.Admin(session.Copy()), middleware.Body(), Invitation)
