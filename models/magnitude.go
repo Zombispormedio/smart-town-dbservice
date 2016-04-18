@@ -109,6 +109,10 @@ func DeleteMagnitude(ID string, session *mgo.Session) *utils.RequestError {
 		Error = utils.BadRequestError("Error Removing Magnitude: " + ID)
 		fmt.Println(RemoveError)
 	}
+	
+	sensor:=SensorCollection(session)
+	
+	sensor.Update(bson.M{"magnitude": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"magnitude":true, "unit":true}})
 
 	return Error
 }

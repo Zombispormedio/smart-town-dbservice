@@ -89,7 +89,10 @@ func DeleteZone(ID string, session *mgo.Session) *utils.RequestError {
 		Error = utils.BadRequestError("Error Removing Zone: " + ID)
 		fmt.Println(RemoveError)
 	}
-
+	sensorGrid:=SensorGridCollection(session)
+	
+	sensorGrid.Update(bson.M{"zone": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"zone":true}})
+	
 	return Error
 }
 
