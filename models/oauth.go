@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"github.com/nu7hatch/gouuid"
 )
 
 type OAuth struct {
@@ -255,4 +256,32 @@ func DeleteOauth(ID string, session *mgo.Session) *utils.RequestError {
 	}
 
 	return Error
+}
+
+func Invite (Email string, session *mgo.Session) (string,*utils.RequestError) {
+	var Error *utils.RequestError
+	code:=""
+	
+	c := GetOAuthCollection(session)
+	
+	count, _:=c.Find(bson.M{"email":Email}).Count()
+	
+	if count!=0{
+		return code, utils.BadRequestError("Error Email Exists")
+	}
+	
+	newID, _ := uuid.NewV4()
+	code = newID.String()
+	guest:=OAuth{}
+	guest.Email=Email
+	guest.Invitation=code;
+	
+	InsertError := insertOAuth(&guest, session)
+
+	if InsertError != nil {
+		Error=utils.BadRequestError("Error Inserting Invitation")
+	}
+
+	
+	return code, Error
 }

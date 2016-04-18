@@ -159,6 +159,33 @@ func DeleteOauth(c *gin.Context, session *mgo.Session) {
 		response.SuccessMessage(c, "Congratulations, You are out :'(")
 	} else {
 		response.Error(c, RemoveError)
-		session.Close()
+
 	}
+}
+
+func Invite(c *gin.Context, session *mgo.Session) {
+	
+	defer session.Close()
+	
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+	email:=body["email"].(string)
+	code, InvitationError := models.Invite(email, session)
+	
+	if InvitationError != nil {
+		response.Error(c, InvitationError)
+		return;
+	} 
+	
+	
+	SendingError:=utils.SendInvitation(code, email)
+	
+	if SendingError == nil{
+		response.SuccessMessage(c, "Congratulations, Your invitation have sent!")
+	}else{
+		response.Error(c, SendingError)
+	}
+	
+	
+	
 }
