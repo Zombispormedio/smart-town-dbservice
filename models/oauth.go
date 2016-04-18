@@ -310,7 +310,7 @@ func AcceptInvitation (Code string, Password string, session *mgo.Session) *util
 	oauth:=OAuth{}
 	
 	FindingError:=c.Find(bson.M{"invitation":Code}).One(&oauth)
-	fmt
+	
 	if FindingError != nil {
 		fmt.Println(FindingError)
 		return utils.BadRequestError("Error Finding Guest")
