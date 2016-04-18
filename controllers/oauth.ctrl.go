@@ -119,3 +119,46 @@ func SetOauthEmail(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+
+
+
+func SetOauthPassword(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+
+	preUser, _ := c.Get("user")
+	id := preUser.(string)
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	var profile = models.Profile{}
+	SettingError := profile.SetPassword(id, body["password"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, profile)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
+
+
+
+func DeleteOauth(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	preUser, _ := c.Get("user")
+	id := preUser.(string)
+
+	RemoveError := models.DeleteOauth(id, session)
+
+	if RemoveError == nil {
+		response.SuccessMessage(c, "Congratulations, You are out :'(")
+	} else {
+		response.Error(c, RemoveError)
+		session.Close()
+	}
+}

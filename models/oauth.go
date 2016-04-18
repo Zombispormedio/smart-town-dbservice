@@ -216,3 +216,43 @@ func (profile *Profile) SetEmail(ID string, Email string, session *mgo.Session) 
 	return Error
 }
 
+
+func (profile *Profile) SetPassword(ID string, Password string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := GetOAuthCollection(session)
+	
+	password := []byte(Password)
+
+	hashedPassword, EncryptError := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	
+	if EncryptError != nil {
+		return utils.BadRequestError("Error With Password")
+	}
+	
+	change := ChangeOneSet("password", string(hashedPassword))
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &profile)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating profile: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+
+
+func DeleteOauth(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := GetOAuthCollection(session)
+
+	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
+
+	if RemoveError != nil {
+		Error = utils.BadRequestError("Error Removing User: " + ID)
+		fmt.Println(RemoveError)
+	}
+
+	return Error
+}
