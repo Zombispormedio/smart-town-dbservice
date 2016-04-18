@@ -3,7 +3,7 @@ package models
 import (
 	"os"
 	"time"
-
+	"fmt"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/utils"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,14 +13,17 @@ import (
 )
 
 type OAuth struct {
-	ID       bson.ObjectId `bson:"_id,omitempty"`
-	Email    string        `bson:"email"`
-	Password string        `bson:"password"`
-	Token    []string      `bson:"token"`
+	ID          bson.ObjectId `bson:"_id,omitempty"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Email       string        `bson:"email"`
+	Password    string        `bson:"password"`
+	Token       []string      `bson:"token"`
+	Invitation  string        `bson:"invitation"  json:"invitation"`
 }
 
 type Profile struct {
-	Email string `json:"email"`
+	Email       string `bson:"email" json:"email"`
+	DisplayName string `bson:"display_name"  json:"display_name"`
 }
 
 func GetOAuthCollection(session *mgo.Session) *mgo.Collection {
@@ -170,15 +173,46 @@ func GetProfile(userID string, profile *Profile, session *mgo.Session) *utils.Re
 
 	collection := GetOAuthCollection(session)
 
-	result := OAuth{}
-	FindingError := collection.Find(bson.M{"_id": bson.ObjectIdHex(userID)}).One(&result)
-    
-    
+	FindingError := collection.Find(bson.M{"_id": bson.ObjectIdHex(userID)}).One(profile)
+
 	if FindingError != nil {
 		return utils.BadRequestError("User Not Exists")
 	}
-    
-    profile.Email=result.Email
+
+	
 
 	return nil
 }
+
+
+
+func (profile *Profile) SetDisplayName(ID string, DisplayName string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := GetOAuthCollection(session)
+	change := ChangeOneSet("display_name", DisplayName)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &profile)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating profile: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+
+func (profile *Profile) SetEmail(ID string, Email string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := GetOAuthCollection(session)
+	change := ChangeOneSet("email", Email)
+
+	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &profile)
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating profile: " + ID)
+		fmt.Println(UpdatingError)
+	}
+
+	return Error
+}
+

@@ -74,3 +74,48 @@ func Whoiam(c *gin.Context, session *mgo.Session) {
 		response.Error(c, WhoiamError)
 	}
 }
+
+func SetOauthDisplayName(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+
+	preUser, _ := c.Get("user")
+	id := preUser.(string)
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	var profile = models.Profile{}
+	SettingError := profile.SetDisplayName(id, body["display_name"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, profile)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
+
+
+func SetOauthEmail(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+
+	preUser, _ := c.Get("user")
+	id := preUser.(string)
+
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+
+	var profile = models.Profile{}
+	SettingError := profile.SetEmail(id, body["email"].(string), session)
+
+	if SettingError == nil {
+		response.Success(c, profile)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+
+}
