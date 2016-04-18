@@ -176,8 +176,6 @@ func Invite(c *gin.Context, session *mgo.Session) {
 		response.Error(c, InvitationError)
 		return;
 	} 
-	
-	
 	SendingError:=utils.SendInvitation(code, email)
 	
 	if SendingError == nil{
@@ -186,6 +184,11 @@ func Invite(c *gin.Context, session *mgo.Session) {
 		response.Error(c, SendingError)
 	}
 	
-	
-	
+}
+
+
+func checkInvitation(c *gin.Context, session *mgo.Session) {
+}
+
+func Invitation(c *gin.Context, session *mgo.Session) {
 }

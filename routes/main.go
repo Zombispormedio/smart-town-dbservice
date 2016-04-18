@@ -48,8 +48,15 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			Delete := _default(controllers.DeleteOauth)
 			oauth.DELETE("", middleware.Admin(session.Copy()), Delete)
 			
-			Invitation := _default(controllers.Invite)
-			oauth.POST("/invite", middleware.Admin(session.Copy()), middleware.Body(), Invitation)
+			Invitate := _default(controllers.Invite)
+			oauth.POST("/invite", middleware.Admin(session.Copy()), middleware.Body(), Invitate)
+			
+			
+			CheckInvitation := _default(controllers.checkInvitation)
+			oauth.GET("/invitation/:code", middleware.Admin(session.Copy()), CheckInvitation)
+			Invitation := _default(controllers.Invitation)
+			oauth.POST("/invitation/:code", middleware.Admin(session.Copy()), middleware.Body(), Invitation)
+			
 		}
 
 		magnitude := api.Group("/magnitude")
