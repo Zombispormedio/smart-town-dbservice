@@ -285,3 +285,53 @@ func Invite (Email string, session *mgo.Session) (string,*utils.RequestError) {
 	
 	return code, Error
 }
+
+func CheckInvitation (code string, session *mgo.Session) (bool,*utils.RequestError) {
+	var checked bool
+	var Error *utils.RequestError
+	c := GetOAuthCollection(session)
+	
+	count, _:=c.Find(bson.M{"invitation":code}).Count()
+	
+	if count==0{
+		return checked, utils.BadRequestError("Error Invitation not Exists")
+	}
+	
+	checked=true
+	
+	return checked, Error
+}
+
+func AcceptInvitation (Code string, Password string, session *mgo.Session) *utils.RequestError{
+	var Error *utils.RequestError
+	
+	c := GetOAuthCollection(session)
+	
+	oauth:=OAuth{}
+	
+	FindingError:=c.Find(bson.M{"invitation":Code}).One(&oauth)
+	
+	if FindingError != nil {
+		fmt.Println(FindingError)
+		return utils.BadRequestError("Error Finding Guest")
+	}
+	
+	password := []byte(Password)
+
+	hashedPassword, EncryptError := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	
+	if EncryptError != nil {
+		fmt.Println(EncryptError)
+		return utils.BadRequestError("Error With Password")
+	}
+	
+	
+	UpdateError:=c.UpdateId(oauth.ID, bson.M{"$set":bson.M{"password": string(hashedPassword)}, "$unset": bson.M{"invitation":true}})
+	
+	if UpdateError != nil {
+		fmt.Println(UpdateError)
+		Error=utils.BadRequestError("Error Updating Invitation")
+	}
+	
+	return Error
+}

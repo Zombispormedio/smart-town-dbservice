@@ -97,7 +97,6 @@ func SetOauthDisplayName(c *gin.Context, session *mgo.Session) {
 
 }
 
-
 func SetOauthEmail(c *gin.Context, session *mgo.Session) {
 
 	defer session.Close()
@@ -119,9 +118,6 @@ func SetOauthEmail(c *gin.Context, session *mgo.Session) {
 	}
 
 }
-
-
-
 
 func SetOauthPassword(c *gin.Context, session *mgo.Session) {
 
@@ -145,8 +141,6 @@ func SetOauthPassword(c *gin.Context, session *mgo.Session) {
 
 }
 
-
-
 func DeleteOauth(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
@@ -164,31 +158,63 @@ func DeleteOauth(c *gin.Context, session *mgo.Session) {
 }
 
 func Invite(c *gin.Context, session *mgo.Session) {
-	
+
 	defer session.Close()
-	
+
 	bodyInterface, _ := c.Get("body")
 	body := utils.InterfaceToMap(bodyInterface)
-	email:=body["email"].(string)
+	email := body["email"].(string)
 	code, InvitationError := models.Invite(email, session)
-	
+
 	if InvitationError != nil {
 		response.Error(c, InvitationError)
-		return;
-	} 
-	SendingError:=utils.SendInvitation(code, email)
-	
-	if SendingError == nil{
+		return
+	}
+	SendingError := utils.SendInvitation(code, email)
+
+	if SendingError == nil {
 		response.SuccessMessage(c, "Congratulations, Your invitation have sent!")
-	}else{
+	} else {
 		response.Error(c, SendingError)
 	}
-	
+
 }
 
-
 func CheckInvitation(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+
+	code := c.Param("code")
+
+	checked, CheckingError := models.CheckInvitation(code, session)
+	
+	if CheckingError == nil {
+		response.Success(c, map[string]bool{
+			"success":checked,
+		})
+	} else {
+		response.Error(c, CheckingError)
+
+	}
+
+
 }
 
 func Invitation(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	code := c.Param("code")
+	bodyInterface, _ := c.Get("body")
+	body := utils.InterfaceToMap(bodyInterface)
+	password := body["password"].(string)
+	
+	AcceptedError := models.AcceptInvitation(code, password, session)
+	
+	if AcceptedError == nil {
+		response.SuccessMessage(c, "Congratulations, Your are in!")
+	} else {
+		response.Error(c, AcceptedError)
+
+	}
+	
 }
