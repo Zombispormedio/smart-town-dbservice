@@ -6,7 +6,7 @@ import (
 	"github.com/Zombispormedio/smartdb/utils"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
-	// "fmt"
+	
 )
 
 func Register(c *gin.Context, session *mgo.Session) {

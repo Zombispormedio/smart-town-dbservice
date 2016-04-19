@@ -1,9 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"reflect"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
@@ -58,7 +59,6 @@ func (magnitude *Magnitude) FillByMap(Map map[string]interface{}, LiteralTag str
 	struts.FillByMap(*magnitude, reflect.ValueOf(magnitude).Elem(), Map, LiteralTag)
 }
 
-
 func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Magnitude")
 }
@@ -76,8 +76,10 @@ func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, sessi
 	InsertError := c.Insert(magnitude)
 
 	if InsertError != nil {
-		Error = utils.BadRequestError("Error Inserting")
-		fmt.Println(InsertError)
+		Error = utils.BadRequestError("Error Inserting Magnitude")
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("MagnitudeInsertError")
 	}
 
 	return Error
@@ -93,7 +95,9 @@ func GetMagnitudes(magnitudes *[]Magnitude, session *mgo.Session) *utils.Request
 
 	if IterError != nil {
 		Error = utils.BadRequestError("Error All Magnitudes")
-		fmt.Println(IterError)
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("MagnitudeInteratorError")
 	}
 
 	return Error
@@ -107,12 +111,16 @@ func DeleteMagnitude(ID string, session *mgo.Session) *utils.RequestError {
 
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Magnitude: " + ID)
-		fmt.Println(RemoveError)
+
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("MagnitudeRemoveError")
 	}
-	
-	sensor:=SensorCollection(session)
-	
-	sensor.Update(bson.M{"magnitude": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"magnitude":true, "unit":true}})
+
+	sensor := SensorCollection(session)
+
+	sensor.Update(bson.M{"magnitude": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"magnitude": true, "unit": true}})
 
 	return Error
 }
@@ -126,7 +134,10 @@ func (magnitude *Magnitude) ByID(ID string, session *mgo.Session) *utils.Request
 
 	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding Magnitude: " + ID)
-		fmt.Println(FindingError)
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeFindByIDError")
 	}
 
 	return Error
@@ -141,7 +152,10 @@ func (magnitude *Magnitude) SetDisplayName(ID string, DisplayName string, sessio
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Magnitude " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeUpdateDisplayNameError")
 	}
 
 	return Error
@@ -157,7 +171,10 @@ func (magnitude *Magnitude) SetType(ID string, Type string, session *mgo.Session
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Magnitude " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeUpdateTypeError")
 	}
 
 	return Error
@@ -186,7 +203,10 @@ func (magnitude *Magnitude) SetDigitalUnits(ID string, units map[string]interfac
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Magnitude Digital Unit " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeUpdateDigitalUnitsError")
 	}
 
 	return Error
@@ -212,7 +232,10 @@ func (magnitude *Magnitude) AddAnalogUnit(ID string, unit map[string]interface{}
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Pushing  AnalogUnit" + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeInsertAnalogUnitError")
 	}
 
 	return Error
@@ -235,7 +258,10 @@ func (magnitude *Magnitude) UpdateAnalogUnit(ID string, unit map[string]interfac
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating  AnalogUnit" + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeUpdateAnalogUnitError")
 	}
 
 	return Error
@@ -254,7 +280,10 @@ func (magnitude *Magnitude) DeleteAnalogUnit(ID string, analogID string, session
 	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &magnitude)
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing AnalogUnit" + ID)
-		fmt.Println(RemoveError)
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeRemoveAnalogUnitError")
 	}
 
 	return Error
@@ -280,12 +309,14 @@ func (magnitude *Magnitude) AddConversion(ID string, unit map[string]interface{}
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Pushing  Conversion: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeInsertConversionError")
 	}
 
 	return Error
 }
-
 
 func (magnitude *Magnitude) UpdateConversion(ID string, inConversion map[string]interface{}, session *mgo.Session) *utils.RequestError {
 
@@ -304,7 +335,10 @@ func (magnitude *Magnitude) UpdateConversion(ID string, inConversion map[string]
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating  Conversion" + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeUpdateConversionError")
 	}
 
 	return Error
@@ -323,7 +357,10 @@ func (magnitude *Magnitude) DeleteConversion(ID string, conversionID string, ses
 	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &magnitude)
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Conversion" + ID)
-		fmt.Println(RemoveError)
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Warn("MagnitudeRemoveConversionError")
 	}
 
 	return Error
