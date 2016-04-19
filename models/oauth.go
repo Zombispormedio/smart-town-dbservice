@@ -103,7 +103,7 @@ func Login(obj map[string]interface{}, session *mgo.Session) (*utils.TokenLogin,
 			"message": FoundError.Error(),
 			"data":    obj["email"],
 		}).Error("OauthParseTokenError")
-		return nil, utils.BadRequestError("User Not Exists")
+		return nil, utils.BadRequestError("User doesn't exist")
 	}
 
 	tempHashPass := []byte(oauth.Password)
