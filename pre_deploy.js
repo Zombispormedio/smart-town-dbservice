@@ -12,9 +12,7 @@ const PACKAGES=[
   "routes", "config", "models" , "controllers", "middleware", "response", "utils", "struts"
 ];
 
-
 fs.writeFileSync(PROD_MAIN, fs.readFileSync(DEV_MAIN));
-
 
 
 
