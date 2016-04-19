@@ -1,10 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
@@ -52,7 +52,10 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 
 	if InsertError != nil {
 		Error = utils.BadRequestError("Error Inserting")
-		fmt.Println(InsertError)
+
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("SensorGridInsertError")
 	}
 
 	return Error
@@ -68,7 +71,10 @@ func GetSensorGrids(sensorGrids *[]SensorGrid, session *mgo.Session) *utils.Requ
 
 	if IterError != nil {
 		Error = utils.BadRequestError("Error All SensorGrids")
-		fmt.Println(IterError)
+
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("SensorGridIteratorError")
 	}
 
 	return Error
@@ -83,7 +89,11 @@ func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.Reque
 
 	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding SensorGrid: " + ID)
-		fmt.Println(FindingError)
+
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridByIDError")
 	}
 
 	return Error
@@ -92,39 +102,45 @@ func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.Reque
 func DeleteSensorGrid(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorGridCollection(session)
-	
-	sensorGrid:=SensorGrid{}
-	
-	FindingError:=c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&sensorGrid)
-	
+
+	sensorGrid := SensorGrid{}
+
+	FindingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&sensorGrid)
+
 	if FindingError != nil {
-		fmt.Println(FindingError)
+
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridRemoveFindError")
 		return utils.BadRequestError("Error Finding SensorGrid: " + ID)
-		
+
 	}
-	
-	count:=len(sensorGrid.Sensors)
+
+	count := len(sensorGrid.Sensors)
 	var RemovingSensorsError *utils.RequestError
-	for index := 0;  index < count; index++ {
-		sensorID:=sensorGrid.Sensors[index].Hex()
-		RemovingSensorsError:=DeleteSensor(sensorID, session)
-		
-		if RemovingSensorsError != nil{
-			break;
+	for index := 0; index < count; index++ {
+		sensorID := sensorGrid.Sensors[index].Hex()
+		RemovingSensorsError := DeleteSensor(sensorID, session)
+
+		if RemovingSensorsError != nil {
+			break
 		}
-		
+
 	}
-	
-	if RemovingSensorsError != nil{
+
+	if RemovingSensorsError != nil {
 		return RemovingSensorsError
 	}
-	
 
 	RemoveError := c.Remove(bson.M{"_id": bson.ObjectIdHex(ID)})
 
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing SensorGrid: " + ID)
-		fmt.Println(RemoveError)
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("SensorGridRemoveError")
 	}
 
 	return Error
@@ -141,7 +157,11 @@ func (sensorGrid *SensorGrid) ChangeSecret(ID string, session *mgo.Session) *uti
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("No Allow Access: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridSecretUpdateError")
 	}
 
 	return Error
@@ -161,7 +181,11 @@ func (sensorGrid *SensorGrid) SetCommunicationCenter(ID string, Comm map[string]
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridCommunicationCenterUpdateError")
 	}
 
 	return Error
@@ -176,7 +200,11 @@ func (sensorGrid *SensorGrid) SetDisplayName(ID string, DisplayName string, sess
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridDisplayNameUpdateError")
 	}
 
 	return Error
@@ -191,7 +219,11 @@ func (sensorGrid *SensorGrid) SetZone(ID string, ZoneID string, session *mgo.Ses
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridZoneUpdateError")
 	}
 
 	return Error
@@ -203,8 +235,17 @@ func (sensorGrid *SensorGrid) AllowAccess(ID string, session *mgo.Session) *util
 	c := SensorGridCollection(session)
 
 	temp := SensorGrid{}
-	err := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&temp)
-	fmt.Println(err)
+	FoundError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(&temp)
+
+	if FoundError != nil {
+
+		log.WithFields(log.Fields{
+			"message": FoundError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridFindError")
+
+		return utils.BadRequestError("SensorGrid Not Found: " + ID)
+	}
 
 	if temp.ClientSecret != "" {
 		change = ChangeOneSet("client_secret", nil)
@@ -217,7 +258,11 @@ func (sensorGrid *SensorGrid) AllowAccess(ID string, session *mgo.Session) *util
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("No Allow Access: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridAccessUpdateError")
 	}
 
 	return Error
@@ -232,7 +277,11 @@ func (sensorGrid *SensorGrid) SetLocation(ID string, location interface{}, sessi
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating SensorGrid: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridLocationUpdateError")
 	}
 
 	return Error
@@ -250,14 +299,21 @@ func (sensorGrid *SensorGrid) UnsetSensor(ID string, sensorID string, session *m
 	_, RemoveError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &sensorGrid)
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error RemovingSensor" + ID)
-		fmt.Println(RemoveError)
+
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("SensorGridUnsetSensorUpdateError")
+
 		return Error
 	}
 
 	InternalError := DeleteSensor(sensorID, session)
 	if InternalError != nil {
 		Error = utils.BadRequestError("Error RemovingSensor" + ID)
-		fmt.Println(InternalError)
+		log.WithFields(log.Fields{
+			"id": ID,
+		}).Error("SensorRemoveError")
 
 	}
 

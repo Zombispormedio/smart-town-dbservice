@@ -3,7 +3,6 @@ package response
 import(
     "github.com/gin-gonic/gin"
     "github.com/Zombispormedio/smartdb/utils"
-    //"fmt"
 )
 
 

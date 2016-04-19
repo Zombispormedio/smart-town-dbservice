@@ -3,12 +3,12 @@ package models
 import (
 	"reflect"
 	"time"
-    "fmt"
-	"github.com/Zombispormedio/smartdb/utils"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
+	"github.com/Zombispormedio/smartdb/utils"
 	"gopkg.in/mgo.v2"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -31,12 +31,11 @@ func TaskCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Task")
 }
 
-
 func (task *Task) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
 	task.FillByMap(obj, "json")
-   
+
 	task.CreatedAt = bson.Now()
 	task.CreatedBy = bson.ObjectIdHex(userID)
 
@@ -46,13 +45,14 @@ func (task *Task) New(obj map[string]interface{}, userID string, session *mgo.Se
 
 	if InsertError != nil {
 		Error = utils.BadRequestError("Error Inserting Task")
-		fmt.Println(InsertError)
+
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("TaskInsertError")
 	}
 
 	return Error
 }
-
-
 
 func GetTasks(tasks *[]Task, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
@@ -64,22 +64,22 @@ func GetTasks(tasks *[]Task, session *mgo.Session) *utils.RequestError {
 
 	if IterError != nil {
 		Error = utils.BadRequestError("Error All Tasks")
-		fmt.Println(IterError)
+
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("TaskIteratorError")
 	}
 
 	return Error
 }
 
-
-
-
-func (task *Task) Update( ID string, obj map[string]interface{},session *mgo.Session) *utils.RequestError {
+func (task *Task) Update(ID string, obj map[string]interface{}, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
 	c := TaskCollection(session)
 
 	change := mgo.Change{
-		Update:    bson.M{"$set": bson.M{"display_name": obj["display_name"], "webhook":obj["webhook"], "frequency":obj["frequency"]}},
+		Update:    bson.M{"$set": bson.M{"display_name": obj["display_name"], "webhook": obj["webhook"], "frequency": obj["frequency"]}},
 		ReturnNew: true,
 	}
 
@@ -87,13 +87,14 @@ func (task *Task) Update( ID string, obj map[string]interface{},session *mgo.Ses
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Task: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("TaskUpdateError")
 	}
-
 
 	return Error
 }
-
 
 func DeleteTask(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
@@ -103,7 +104,10 @@ func DeleteTask(ID string, session *mgo.Session) *utils.RequestError {
 
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Task: " + ID)
-		fmt.Println(RemoveError)
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("TaskUpdateError")
 	}
 
 	return Error

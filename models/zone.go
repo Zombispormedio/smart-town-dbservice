@@ -1,10 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
@@ -57,7 +57,10 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 
 	if InsertError != nil {
 		Error = utils.BadRequestError("Error Inserting Zone")
-		fmt.Println(InsertError)
+
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("ZoneInsertError")
 	}
 
 	return Error
@@ -73,7 +76,9 @@ func GetZones(zones *[]Zone, session *mgo.Session) *utils.RequestError {
 
 	if IterError != nil {
 		Error = utils.BadRequestError("Error All Zones")
-		fmt.Println(IterError)
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("ZoneIteratorError")
 	}
 
 	return Error
@@ -87,12 +92,16 @@ func DeleteZone(ID string, session *mgo.Session) *utils.RequestError {
 
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Zone: " + ID)
-		fmt.Println(RemoveError)
+
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("ZoneRemoveError")
 	}
-	sensorGrid:=SensorGridCollection(session)
-	
-	sensorGrid.Update(bson.M{"zone": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"zone":true}})
-	
+	sensorGrid := SensorGridCollection(session)
+
+	sensorGrid.Update(bson.M{"zone": bson.ObjectIdHex(ID)}, bson.M{"$unset": bson.M{"zone": true}})
+
 	return Error
 }
 
@@ -105,7 +114,11 @@ func (zone *Zone) ByID(ID string, session *mgo.Session) *utils.RequestError {
 
 	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding Zone: " + ID)
-		fmt.Println(FindingError)
+
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("ZoneByIDError")
 	}
 
 	return Error
@@ -120,7 +133,11 @@ func (zone *Zone) SetDisplayName(ID string, DisplayName string, session *mgo.Ses
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Zone: " + ID)
-		fmt.Println(UpdatingError)
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("ZoneDisplayNameUpdateError")
 	}
 
 	return Error
@@ -135,7 +152,10 @@ func (zone *Zone) SetDescription(ID string, Description string, session *mgo.Ses
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Zone: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("ZoneDescriptionUpdateError")
 	}
 
 	return Error
@@ -144,46 +164,45 @@ func (zone *Zone) SetDescription(ID string, Description string, session *mgo.Ses
 func (zone *Zone) SetKeywords(ID string, inKeywords interface{}, session *mgo.Session) *utils.RequestError {
 
 	var Error *utils.RequestError
-	
-    keywords:=utils.InterfaceToStringArray(inKeywords)
-    
-    c := ZoneCollection(session)
+
+	keywords := utils.InterfaceToStringArray(inKeywords)
+
+	c := ZoneCollection(session)
 	change := ChangeOneSet("keywords", keywords)
 
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Zone: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("ZoneKeywordsUpdateError")
 	}
-
-	
 
 	return Error
 }
 
-
-
-
 func (zone *Zone) SetShape(ID string, inShape interface{}, session *mgo.Session) *utils.RequestError {
 
 	var Error *utils.RequestError
-    
-    shapeMap:=utils.InterfaceToMap(inShape)
-	shape:= GeoShape{}
-    shape.FillByMap(shapeMap, "json")
-    
-    c := ZoneCollection(session)
+
+	shapeMap := utils.InterfaceToMap(inShape)
+	shape := GeoShape{}
+	shape.FillByMap(shapeMap, "json")
+
+	c := ZoneCollection(session)
 	change := ChangeOneSet("shape", shape)
 
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Zone: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("ZoneShapeUpdateError")
 	}
-
-	
 
 	return Error
 }

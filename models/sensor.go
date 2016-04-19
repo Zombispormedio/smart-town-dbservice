@@ -1,10 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/struts"
 	"github.com/Zombispormedio/smartdb/utils"
@@ -43,8 +43,8 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 	var Error *utils.RequestError
 
 	sensor.FillByMap(obj, "json")
-    sensor.ID=bson.NewObjectId();
-    
+	sensor.ID = bson.NewObjectId()
+
 	newID, _ := uuid.NewV4()
 	sensor.NodeID = newID.String()
 	sensor.CreatedAt = bson.Now()
@@ -56,7 +56,11 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 
 	if InsertError != nil {
 		Error = utils.BadRequestError("Error Inserting Sensor")
-		fmt.Println(InsertError)
+
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("SensorInsertError")
+
 		return Error
 
 	}
@@ -66,8 +70,12 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 	UpdatingError := sensorGrid.UpdateId(sensor.SensorGrid, bson.M{"$addToSet": bson.M{"sensors": sensor.ID}})
 
 	if UpdatingError != nil {
-		Error = utils.BadRequestError("Error Pushing  Sensor i SensorGrid: " +sensor.SensorGrid.String() )
-		fmt.Println(UpdatingError)
+		Error = utils.BadRequestError("Error Pushing  Sensor i SensorGrid: " + sensor.SensorGrid.String())
+
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      sensor.SensorGrid,
+		}).Error("SensorGridSensorInsertError")
 	}
 
 	return Error
@@ -83,7 +91,9 @@ func GetSensors(sensors *[]Sensor, sensorGrid string, session *mgo.Session) *uti
 
 	if IterError != nil {
 		Error = utils.BadRequestError("Error All Sensors")
-		fmt.Println(IterError)
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("SensorIteratorError")
 	}
 
 	return Error
@@ -97,7 +107,11 @@ func (sensor *Sensor) ByID(ID string, session *mgo.Session) *utils.RequestError 
 	FindingError := c.FindId(bson.ObjectIdHex(ID)).One(sensor)
 	if FindingError != nil {
 		Error = utils.BadRequestError("Error Finding Sensor: " + ID)
-		fmt.Println(FindingError)
+
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("SensorByIDError")
 	}
 
 	return Error
@@ -111,14 +125,16 @@ func DeleteSensor(ID string, session *mgo.Session) *utils.RequestError {
 
 	if RemoveError != nil {
 		Error = utils.BadRequestError("Error Removing Sensor: " + ID)
-		fmt.Println(RemoveError)
+		log.WithFields(log.Fields{
+			"message": RemoveError.Error(),
+			"id":      ID,
+		}).Error("SensorRemoveError")
 	}
 
 	return Error
 }
 
-
-func (sensor *Sensor)SetTransmissor(ID string, Trans map[string]interface{}, session *mgo.Session) *utils.RequestError {
+func (sensor *Sensor) SetTransmissor(ID string, Trans map[string]interface{}, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
 	c := SensorCollection(session)
@@ -132,7 +148,10 @@ func (sensor *Sensor)SetTransmissor(ID string, Trans map[string]interface{}, ses
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorTransmissorUpdateError")
 	}
 
 	return Error
@@ -147,7 +166,10 @@ func (sensor *Sensor) SetDisplayName(ID string, DisplayName string, session *mgo
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorDisplayNameUpdateError")
 	}
 
 	return Error
@@ -159,7 +181,7 @@ func (sensor *Sensor) SetMagnitude(ID string, Magnitude map[string]interface{}, 
 	c := SensorCollection(session)
 
 	change := mgo.Change{
-		Update:    bson.M{"$set": bson.M{"magnitude":  bson.ObjectIdHex(Magnitude["magnitude"].(string)),"unit":  Magnitude["unit"],"is_raw_data":  Magnitude["is_raw_data"],"raw_conversion":  Magnitude["raw_conversion"]}},
+		Update:    bson.M{"$set": bson.M{"magnitude": bson.ObjectIdHex(Magnitude["magnitude"].(string)), "unit": Magnitude["unit"], "is_raw_data": Magnitude["is_raw_data"], "raw_conversion": Magnitude["raw_conversion"]}},
 		ReturnNew: true,
 	}
 
@@ -167,7 +189,10 @@ func (sensor *Sensor) SetMagnitude(ID string, Magnitude map[string]interface{}, 
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
-		fmt.Println(UpdatingError)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorMagnitudeUpdateError")
 	}
 
 	return Error
