@@ -1,16 +1,17 @@
 package middleware
 
 import (
+
 	"os"
 	"strings"
-	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
-		
-	"github.com/Zombispormedio/smartdb/models"
-	"github.com/Zombispormedio/smartdb/lib/response"
-)
 
+	"github.com/Zombispormedio/smartdb/lib/response"
+	"github.com/Zombispormedio/smartdb/lib/store"
+	"github.com/Zombispormedio/smartdb/models"
+)
 
 func Secret() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -65,21 +66,25 @@ func Admin(session *mgo.Session) gin.HandlerFunc {
 		c.Next()
 
 	}
-	
+
 }
-
-
 
 func PushService() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		token := c.Request.Header.Get("Authorization")
-		fmt.Println(token)
 
-		c.Next()
+		WithAuthorization := func(auth string) {
+			if auth == token{
+				c.Next()
+			}else{
+				response.ErrorByString(c, 403, "No Authorization")
+			}
+		}
+
+		store.Get("push_identifier", "Config", WithAuthorization)
+
+		
 
 	}
 }
-
-
-
