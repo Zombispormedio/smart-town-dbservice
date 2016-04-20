@@ -8,7 +8,7 @@ import (
 
 func TestMain(m *testing.T) {
 
-	db, err := bolt.Open(".cache/main.db", 0600, nil)
+	db, err := bolt.Open(".store/main.db", 0600, nil)
 	if err != nil {
 		m.Fatal(err)
 	}
