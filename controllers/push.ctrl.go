@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/Zombispormedio/smartdb/response"
+	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/gin-gonic/gin"
 )
 

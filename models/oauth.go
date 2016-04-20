@@ -6,7 +6,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
-	"github.com/Zombispormedio/smartdb/utils"
+	"github.com/Zombispormedio/smartdb/lib/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/nu7hatch/gouuid"
 	"golang.org/x/crypto/bcrypt"

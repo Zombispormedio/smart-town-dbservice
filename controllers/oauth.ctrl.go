@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/Zombispormedio/smartdb/models"
-	"github.com/Zombispormedio/smartdb/response"
-	"github.com/Zombispormedio/smartdb/utils"
+	"github.com/Zombispormedio/smartdb/lib/response"
+	"github.com/Zombispormedio/smartdb/lib/utils"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 	

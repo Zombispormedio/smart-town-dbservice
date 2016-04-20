@@ -8,7 +8,7 @@ import (
 	"gopkg.in/mgo.v2"
 
 	"github.com/Zombispormedio/smartdb/models"
-	"github.com/Zombispormedio/smartdb/response"
+	"github.com/Zombispormedio/smartdb/lib/response"
 )
 
 func Sensor() gin.HandlerFunc {

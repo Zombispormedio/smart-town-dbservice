@@ -6,8 +6,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
-	"github.com/Zombispormedio/smartdb/struts"
-	"github.com/Zombispormedio/smartdb/utils"
+	"github.com/Zombispormedio/smartdb/lib/struts"
+	"github.com/Zombispormedio/smartdb/lib/utils"
 	"github.com/nu7hatch/gouuid"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
