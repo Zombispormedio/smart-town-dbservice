@@ -228,6 +228,16 @@ func Set(router *gin.Engine, session *mgo.Session) {
 		}
 
 	}
+	
+	
+	push := router.Group("/push")
+	{
+		config:=push.Group("/config")
+		{
+			config.GET("/credentials", controllers.PushCredentialsConfig)
+			
+		}
+	}
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(404,
