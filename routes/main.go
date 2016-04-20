@@ -230,7 +230,7 @@ func Set(router *gin.Engine, session *mgo.Session) {
 	}
 	
 	
-	push := router.Group("/push")
+	push := router.Group("/push", middleware.PushService())
 	{
 		config:=push.Group("/config")
 		{
