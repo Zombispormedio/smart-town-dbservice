@@ -183,7 +183,7 @@ func (zone *Zone) SetKeywords(ID string, inKeywords interface{}, session *mgo.Se
 	return Error
 }
 
-func (zone *Zone) SetShape(ID string, inShape interface{}, session *mgo.Session) *utils.RequestError {
+func (zone *Zone) SetShape(ID string, inShape interface{}, inCenter interface{}, session *mgo.Session) *utils.RequestError {
 
 	var Error *utils.RequestError
 
@@ -192,7 +192,10 @@ func (zone *Zone) SetShape(ID string, inShape interface{}, session *mgo.Session)
 	shape.FillByMap(shapeMap, "json")
 
 	c := ZoneCollection(session)
-	change := ChangeOneSet("shape", shape)
+	change := mgo.Change{
+		Update:    bson.M{"$set": bson.M{"shape": shape, "center": inCenter}},
+		ReturnNew: true,
+	}
 
 	_, UpdatingError := c.FindId(bson.ObjectIdHex(ID)).Apply(change, &zone)
 

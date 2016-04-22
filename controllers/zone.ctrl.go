@@ -146,7 +146,7 @@ func  SetZoneShape(c *gin.Context, session *mgo.Session) {
 
 	zone := models.Zone{}
 
-	SettingError := zone.SetShape(id, body["shape"], session)
+	SettingError := zone.SetShape(id, body["shape"], body["center"], session)
 
 	if SettingError == nil {
 		response.Success(c, zone)
