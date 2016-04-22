@@ -319,3 +319,26 @@ func (sensorGrid *SensorGrid) UnsetSensor(ID string, sensorID string, session *m
 
 	return Error
 }
+
+func (sensorGrid *SensorGrid) CheckCredentials(ClientID string, ClientSecret string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+
+	FindingError := c.Find(bson.M{"client_id": ClientID}).One(sensorGrid)
+
+	if FindingError != nil {
+		
+		log.WithFields(log.Fields{
+			"client_id": ClientID,
+		}).Error("SensorCheckCredencialsError")
+		
+		return  utils.BadRequestError("Error CheckCredentials- ClientID not found: " + ClientID)
+	}
+	
+	
+	if ClientSecret != sensorGrid.ClientSecret{
+		Error=utils.BadRequestError("Error CheckCredentials- Bad ClientSecret: " + ClientID)
+	}
+
+	return Error
+}

@@ -236,6 +236,8 @@ func Set(router *gin.Engine, session *mgo.Session) {
 		{
 			config.GET("/credentials", controllers.PushCredentialsConfig)
 			
+			SensorGrid:=_default(controllers.CheckSensorGrid)
+			config.POST("/sensor_grid", middleware.Body(), SensorGrid)
 		}
 	}
 

@@ -210,3 +210,5 @@ func DeleteSensorByGrid(c *gin.Context, session *mgo.Session) {
 
 	}
 }
+
+
