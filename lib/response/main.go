@@ -31,11 +31,11 @@ func SuccessMessage(c *gin.Context, message string){
     c.JSON(200, msg)
 }
 
-func ErrorByString(c * gin.Context, code int, error string){
+func ErrorByString(c * gin.Context, code int, err string){
     var msg  ErrorMessageT
 
     msg.Status=1
-    msg.Error=error
+    msg.Error=err
     c.JSON(code, msg)
     c.AbortWithStatus(code)
 }

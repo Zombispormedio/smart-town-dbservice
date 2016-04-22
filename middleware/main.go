@@ -73,17 +73,22 @@ func PushService() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		token := c.Request.Header.Get("Authorization")
-
-		WithAuthorization := func(auth string) {
+		var auth string
+		Error:=store.Get("push_identifier", "Config", func(value string){
+			auth=value
+		})
+		
+		if Error== nil{
 			if auth == token{
 				c.Next()
 			}else{
 				response.ErrorByString(c, 403, "No Authorization")
 			}
+			
+		}else{
+			response.ErrorByString(c, 403, "No Authorization")
 		}
-
-		store.Get("push_identifier", "Config", WithAuthorization)
-
+		
 		
 
 	}

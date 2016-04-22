@@ -21,7 +21,7 @@ func TestMain(m *testing.T) {
 		v := string(b.Get([]byte("push_identifier")))
 		m.Log(v)
 
-		if v == "" {
+		if v != "n6NH976vNOHlWQwGH83uvXS9bTsrUtYb" {
 			m.Log("push_identifier changed")
 			Error = b.Put([]byte("push_identifier"), []byte("n6NH976vNOHlWQwGH83uvXS9bTsrUtYb"))
 		}
