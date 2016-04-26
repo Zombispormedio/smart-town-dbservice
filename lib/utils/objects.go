@@ -2,7 +2,7 @@ package utils
 
 import(
     "reflect"
- 
+ "gopkg.in/mgo.v2/bson"
 )
 
 type RequestError struct{
@@ -10,9 +10,6 @@ type RequestError struct{
     Message string
 }
 
-func hello(){
-    
-}
 
 func BadRequestError(msg string) *RequestError{
     return &RequestError{Code:400, Message:msg}
@@ -53,4 +50,28 @@ func InterfaceToStringArray(in interface{}) []string{
 		out[i]=s.Index(i).Interface().(string)
 	}
     return out
+}
+
+
+func SliceInterfaceToSliceMap(in interface{})[]map[string]interface{}{
+    out := []map[string]interface{}{}
+
+	s := reflect.ValueOf(in)
+
+	for i := 0; i < s.Len(); i++ {
+		value:=s.Index(i).Interface().(map[string]interface{})
+		out=append(out, value)
+		
+	}
+    return out
+}
+
+
+func ContainsObjectID(s []bson.ObjectId, e bson.ObjectId) bool {
+    for _, a := range s {
+        if a == e {
+            return true
+        }
+    }
+    return false
 }

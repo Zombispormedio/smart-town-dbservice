@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/store"
@@ -45,13 +47,30 @@ func CheckSensorGrid(c *gin.Context, session *mgo.Session) {
 
 	sensorGrid := models.SensorGrid{}
 	CredentialsError := sensorGrid.CheckCredentials(body["client_id"].(string), body["client_secret"].(string), session)
-	
+
 	if CredentialsError == nil {
 		response.SuccessMessage(c, "Perfect Check in")
 	} else {
-		response.Error(c,CredentialsError)
+		response.Error(c, CredentialsError)
 
 	}
+
+}
+
+func PushSensorRegistry(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	body, _ := c.Get("body")
+
+	Data:=utils.SliceInterfaceToSliceMap(body)
+
+	PushError:=models.PushSensorData(Data, session)
 	
 
+	if PushError == nil {
+	response.SuccessMessage(c, "Perfect Pushover")
+	} else {
+		response.Error(c,PushError)
+
+	}
 }

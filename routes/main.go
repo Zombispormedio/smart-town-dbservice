@@ -232,13 +232,16 @@ func Set(router *gin.Engine, session *mgo.Session) {
 	
 	push := router.Group("/push", middleware.PushService())
 	{
-		config:=push.Group("/config")
-		{
-			config.GET("/credentials", controllers.PushCredentialsConfig)
+		
+			push.GET("/credentials", controllers.PushCredentialsConfig)
 			
-			SensorGrid:=_default(controllers.CheckSensorGrid)
-			config.POST("/sensor_grid", middleware.Body(), SensorGrid)
-		}
+			SensorRegistry:=_default(controllers.PushSensorRegistry)
+			push.POST("/sensor_grid", middleware.Body(), SensorRegistry)
+			
+			
+			CheckSensorGrid:=_default(controllers.CheckSensorGrid)
+			push.POST("/sensor_grid/check", middleware.Body(), CheckSensorGrid)
+		
 	}
 
 	router.NoRoute(func(c *gin.Context) {
