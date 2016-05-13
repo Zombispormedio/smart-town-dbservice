@@ -15,6 +15,10 @@ func BadRequestError(msg string) *RequestError{
     return &RequestError{Code:400, Message:msg}
 }
 
+func NoAuthError(msg string) *RequestError{
+    return &RequestError{Code:403, Message:msg}
+}
+
 
 func InterfaceToMap(obj interface{}) map[string]interface{}{
     return obj.(map[string]interface{})

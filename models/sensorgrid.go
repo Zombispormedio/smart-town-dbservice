@@ -332,7 +332,7 @@ func (sensorGrid *SensorGrid) CheckCredentials(ClientID string, ClientSecret str
 			"client_id": ClientID,
 		}).Error("SensorCheckCredencialsError")
 		
-		return  utils.BadRequestError("Error CheckCredentials- ClientID not found: " + ClientID)
+		return  utils.NoAuthError("Error CheckCredentials- ClientID not found: " + ClientID)
 	}
 	
 	

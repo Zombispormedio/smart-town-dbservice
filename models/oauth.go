@@ -169,7 +169,7 @@ func SessionToken(tokenString string, session *mgo.Session) (interface{}, *utils
 			"message": ParsingTokenError.Error(),
 		}).Error("OauthParseTokenError")
 
-		return nil, utils.BadRequestError("Parsing Token Error")
+		return nil, utils.NoAuthError("Parsing Token Error")
 	}
 
 	oauthID := token.Claims["id"]
@@ -181,7 +181,7 @@ func SessionToken(tokenString string, session *mgo.Session) (interface{}, *utils
 	FindingError := collection.Find(bson.M{"_id": bson.ObjectIdHex(oauthID.(string)), "token": tokenString}).One(&result)
 
 	if FindingError != nil {
-		Error = utils.BadRequestError("Session Not Exists")
+		Error = utils.NoAuthError("Session Not Exists")
 		log.WithFields(log.Fields{
 			"message": FindingError.Error(),
 		}).Warn("OauthTokenFindError")
