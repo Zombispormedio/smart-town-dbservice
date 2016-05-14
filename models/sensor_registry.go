@@ -79,6 +79,10 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 			Date := time.Unix(unixDate, 0)
 
 			registry := &SensorRegistry{}
+			
+			changeSensor:=bson.M{
+				"last_sync":Date,
+			}
 
 			if utils.Notify(Date) == false {
 				registry.Sensor = sensor.ID
@@ -96,16 +100,12 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 				}
 			}else{
 				
-				NotifyData:=struct{
-					isDelay bool `bson:"is_delay"`
-					LastSync time.Time `bson:"last_sync"`
-				}{}
-				
-				NotifyData.isDelay=true
-				NotifyData.LastSync=Date
+				changeSensor["notify"]=true;
 				
 				
-				UpdateError:=SensorC.Update(bson.M{"_id": sensor.ID}, bson.M{"$push":bson.M{"notify":NotifyData}})
+			}
+			
+			UpdateError:=SensorC.Update(bson.M{"_id": sensor.ID}, bson.M{"$set":changeSensor })
 				
 				if UpdateError != nil {
 					log.WithFields(log.Fields{
@@ -113,7 +113,6 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 					}).Warn("SensorPushUpdateError")
 					return utils.BadRequestError("Error Push Update Notify")
 				}
-			}
 
 		}
 

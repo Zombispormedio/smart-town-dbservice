@@ -29,6 +29,10 @@ type Sensor struct {
 
 	CreatedBy bson.ObjectId `bson:"created_by"    json:"created_by"`
 	CreatedAt time.Time     `bson:"created_at"    json:"created_at"`
+
+	LastSync time.Time `bson:"last_sync"    json:"last_sync"`
+
+	Notify bool `bson:"notify"    json:"notify"`
 }
 
 func (sensor *Sensor) FillByMap(Map map[string]interface{}, LiteralTag string) {
