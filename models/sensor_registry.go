@@ -95,7 +95,17 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 					return utils.BadRequestError("Error Push Insert")
 				}
 			}else{
-				UpdateError:=SensorC.Update(bson.M{"_id": sensor.ID}, bson.M{"$set":bson.M{"notify":true}})
+				
+				NotifyData:=struct{
+					isDelay bool `bson:"is_delay"`
+					LastSync time.Time `bson:"last_sync"`
+				}{}
+				
+				NotifyData.isDelay=true
+				NotifyData.LastSync=Date
+				
+				
+				UpdateError:=SensorC.Update(bson.M{"_id": sensor.ID}, bson.M{"$push":bson.M{"notify":NotifyData}})
 				
 				if UpdateError != nil {
 					log.WithFields(log.Fields{
