@@ -1,8 +1,9 @@
 package models
 
 import (
+	"strconv"
 	"time"
-    "strconv"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/lib/utils"
@@ -15,7 +16,7 @@ type SensorRegistry struct {
 	Sensor     bson.ObjectId `bson:"node_id" json:"node_id"`
 	SensorGrid bson.ObjectId `bson:"sensor_grid"    json:"sensor_grid"`
 	Value      float64       `bson:"value" json:"value"`
-	CreatedAt  time.Time     `bson:"created_at"    json:"created_at"`
+	Date       time.Time     `bson:"date"    json:"date"`
 }
 
 func SensorRegistryCollection(session *mgo.Session) *mgo.Collection {
@@ -50,6 +51,7 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 
 			NodeID := plainSensor["node_id"].(string)
 			SensorValue := plainSensor["value"].(string)
+			SensorDate := plainSensor["date"].(string)
 
 			sensor := Sensor{}
 
@@ -62,33 +64,46 @@ func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *util
 				}).Warn("SensorPushFindingError")
 				return utils.BadRequestError("Error Finding Sensor in Push: " + NodeID)
 			}
-            
-            SensorIsInSensorGrid:=utils.ContainsObjectID(sensorGrid.Sensors, sensor.ID)
-            
-            if !SensorIsInSensorGrid{
-                log.WithFields(log.Fields{
+
+			SensorIsInSensorGrid := utils.ContainsObjectID(sensorGrid.Sensors, sensor.ID)
+
+			if !SensorIsInSensorGrid {
+				log.WithFields(log.Fields{
 					"message": "Sensor not found in Sensor Grid",
-					"id": sensor.ID,
+					"id":      sensor.ID,
 				}).Warn("SensorPushFindingError")
 				return utils.BadRequestError("Error Sensor not found in Sensor Grid: " + sensor.ID.String())
-            }
-            
-            registry:=&SensorRegistry{}
-            
-            registry.Sensor=sensor.ID
-            registry.SensorGrid=sensorGrid.ID
-            registry.Value,_=strconv.ParseFloat(SensorValue, 64)
-            registry.CreatedAt=bson.Now()
-            
-            InsertError:=RegistryC.Insert(registry)
-            
-            if   InsertError != nil {
-				log.WithFields(log.Fields{
-					"message":  InsertError.Error(),
-				}).Warn("SensorPushInsertError")
-				return utils.BadRequestError("Error Push Insert")
 			}
-            
+
+			unixDate, _ := strconv.ParseInt(SensorDate, 10, 64)
+			Date := time.Unix(unixDate, 0)
+
+			registry := &SensorRegistry{}
+
+			if utils.Notify(Date) == false {
+				registry.Sensor = sensor.ID
+				registry.SensorGrid = sensorGrid.ID
+				registry.Value, _ = strconv.ParseFloat(SensorValue, 64)
+				registry.Date = Date
+
+				InsertError := RegistryC.Insert(registry)
+
+				if InsertError != nil {
+					log.WithFields(log.Fields{
+						"message": InsertError.Error(),
+					}).Warn("SensorPushInsertError")
+					return utils.BadRequestError("Error Push Insert")
+				}
+			}else{
+				UpdateError:=SensorC.Update(bson.M{"_id": sensor.ID}, bson.M{"$set":bson.M{"notify":true}})
+				
+				if UpdateError != nil {
+					log.WithFields(log.Fields{
+						"message": UpdateError.Error(),
+					}).Warn("SensorPushUpdateError")
+					return utils.BadRequestError("Error Push Update Notify")
+				}
+			}
 
 		}
 
