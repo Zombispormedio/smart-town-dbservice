@@ -34,13 +34,33 @@ func GetSensorGrids(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
 	result:= []models.SensorGrid{}
+	
+	
+	keysQueries := []string{"search", "p", "s"}
+	queries := utils.Queries(c, keysQueries)
 
-	GetAllError := models.GetSensorGrids(&result, session)
+	GetAllError := models.GetSensorGrids(&result, queries, session)
 	if GetAllError == nil {
 		response.Success(c, result)
 	} else {
 		response.Error(c, GetAllError)
 	}
+}
+
+
+func CountSensorGrids(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	keysQueries:=[]string{"search"}
+	queries:=utils.Queries(c, keysQueries)
+
+	result, CountError := models.CountSensorGrids(queries, session)
+	if CountError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, CountError)
+	}
+	
 }
 
 func GetSensorGridByID(c *gin.Context, session *mgo.Session) {

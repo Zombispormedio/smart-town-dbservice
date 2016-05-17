@@ -2,6 +2,7 @@ package models
 
 import (
 	"reflect"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -26,7 +27,7 @@ func (shape *GeoShape) FillByMap(Map map[string]interface{}, LiteralTag string) 
 
 type Zone struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	Ref         int         `bson:"ref,omitempty" json:"ref"`
+	Ref         int           `bson:"ref,omitempty" json:"ref"`
 	DisplayName string        `bson:"display_name"  json:"display_name"`
 	Description string        `bson:"description"  json:"description"`
 	Keywords    []string      `bson:"keywords" json:"keywords"`
@@ -44,6 +45,30 @@ func ZoneCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("Zone")
 }
 
+func SearchZoneQuery(search string) bson.M {
+	or := []bson.M{
+		bson.M{"display_name": bson.M{"$regex": search}},
+		bson.M{"ref": bson.M{"$regex": search}},
+		bson.M{"description": bson.M{"$regex": search}},
+		bson.M{"keywords": bson.M{"$regex": search}},
+		bson.M{"shape.type": bson.M{"$regex": search}},
+		bson.M{"center": search},
+		bson.M{"shape.radius": search},
+		bson.M{"shape.center": search},
+		bson.M{"shape.bounds": search},
+		bson.M{"shape.paths": search},
+	}
+
+	if bson.IsObjectIdHex(search) {
+		or = append(or, bson.M{"_id": bson.ObjectIdHex(search)})
+
+	}
+
+	return bson.M{
+		"$or": or,
+	}
+}
+
 func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 
@@ -53,9 +78,9 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 	zone.CreatedBy = bson.ObjectIdHex(userID)
 
 	c := ZoneCollection(session)
-	
+
 	var RefError error
-	
+
 	zone.Ref, RefError = NextID(c)
 
 	if RefError != nil {
@@ -63,7 +88,7 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 			"message": RefError.Error(),
 		}).Error("ZoneRefError")
 
-		return utils.BadRequestError("RefError Zone: "+RefError.Error())
+		return utils.BadRequestError("RefError Zone: " + RefError.Error())
 
 	}
 
@@ -80,11 +105,35 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 	return Error
 }
 
-func GetZones(zones *[]Zone, session *mgo.Session) *utils.RequestError {
+func GetZones(zones *[]Zone, UrlQuery map[string]string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := ZoneCollection(session)
 
-	iter := c.Find(nil).Iter()
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchZoneQuery(search)
+	}
+
+	var iter *mgo.Iter
+
+	q := c.Find(query)
+
+	if UrlQuery["p"] != "" {
+		p, _ := strconv.Atoi(UrlQuery["p"])
+		s := 10
+		if UrlQuery["s"] != "" {
+			s, _ = strconv.Atoi(UrlQuery["s"])
+		}
+
+		skip := p * s
+
+		iter = q.Skip(skip).Limit(s).Iter()
+
+	} else {
+		iter = q.Iter()
+	}
 
 	IterError := iter.All(zones)
 
@@ -96,6 +145,31 @@ func GetZones(zones *[]Zone, session *mgo.Session) *utils.RequestError {
 	}
 
 	return Error
+}
+
+func CountZones(UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
+	var Error *utils.RequestError
+	var result int
+	c := ZoneCollection(session)
+
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchZoneQuery(search)
+	}
+
+	var CountError error
+	result, CountError = c.Find(query).Count()
+
+	if CountError != nil {
+		Error = utils.BadRequestError("Error Count Zones")
+		log.WithFields(log.Fields{
+			"message": CountError.Error(),
+		}).Error("ZoneCountError")
+	}
+
+	return result, Error
 }
 
 func DeleteZone(ID string, session *mgo.Session) *utils.RequestError {

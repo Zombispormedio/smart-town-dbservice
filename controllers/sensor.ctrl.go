@@ -35,13 +35,36 @@ func GetSensors(c *gin.Context, session *mgo.Session) {
 	id := c.Param("id")
 	result:= []models.Sensor{}
 
-	GetAllError := models.GetSensors(&result,id, session)
+
+	
+	keysQueries := []string{"search", "p", "s"}
+	queries := utils.Queries(c, keysQueries)
+
+	GetAllError := models.GetSensors(&result,id, queries, session)
 	if GetAllError == nil {
 		response.Success(c, result)
 	} else {
 		response.Error(c, GetAllError)
 	}
 }
+
+func CountSensors(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	defer session.Close()
+	id := c.Param("id")
+	
+	keysQueries:=[]string{"search"}
+	queries:=utils.Queries(c, keysQueries)
+
+	result, CountError := models.CountSensors(id, queries, session)
+	if CountError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, CountError)
+	}
+	
+}
+
 
 func GetSensorByID(c *gin.Context, session *mgo.Session) {
 	defer session.Close()

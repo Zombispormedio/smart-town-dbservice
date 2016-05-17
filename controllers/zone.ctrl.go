@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/Zombispormedio/smartdb/models"
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/utils"
+	"github.com/Zombispormedio/smartdb/models"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 )
@@ -32,9 +32,12 @@ func CreateZone(c *gin.Context, session *mgo.Session) {
 func GetZones(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
-	result:= []models.Zone{}
+	result := []models.Zone{}
 
-	GetAllError := models.GetZones(&result, session)
+	keysQueries := []string{"search", "p", "s"}
+	queries := utils.Queries(c, keysQueries)
+
+	GetAllError := models.GetZones(&result, queries, session)
 	if GetAllError == nil {
 		response.Success(c, result)
 	} else {
@@ -42,6 +45,22 @@ func GetZones(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+func CountZones(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	keysQueries:=[]string{"search"}
+	queries:=utils.Queries(c, keysQueries)
+
+	result, CountError := models.CountZones(queries, session)
+	if CountError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, CountError)
+	}
+	
+}
+
 
 func DeleteZone(c *gin.Context, session *mgo.Session) {
 
@@ -136,8 +155,7 @@ func SetZoneKeywords(c *gin.Context, session *mgo.Session) {
 	}
 }
 
-
-func  SetZoneShape(c *gin.Context, session *mgo.Session) {
+func SetZoneShape(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 	id := c.Param("id")
 
@@ -155,4 +173,3 @@ func  SetZoneShape(c *gin.Context, session *mgo.Session) {
 
 	}
 }
-

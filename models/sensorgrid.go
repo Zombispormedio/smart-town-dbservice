@@ -2,6 +2,7 @@ package models
 
 import (
 	"reflect"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -15,7 +16,7 @@ import (
 
 type SensorGrid struct {
 	ID           bson.ObjectId   `bson:"_id,omitempty" json:"_id"`
-	Ref          int           `bson:"ref,omitempty" json:"ref"`
+	Ref          int             `bson:"ref,omitempty" json:"ref"`
 	ClientID     string          `bson:"client_id" json:"client_id"`
 	ClientSecret string          `bson:"client_secret" json:"client_secret"`
 	DisplayName  string          `bson:"display_name"  json:"display_name"`
@@ -34,6 +35,27 @@ func (sensorGrid *SensorGrid) FillByMap(Map map[string]interface{}, LiteralTag s
 
 func SensorGridCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("SensorGrid")
+}
+
+func SearchSensorGridQuery(search string) bson.M {
+	or := []bson.M{
+		bson.M{"display_name": bson.M{"$regex": search}},
+		bson.M{"ref": bson.M{"$regex": search}},
+		bson.M{"description": bson.M{"$regex": search}},
+		bson.M{"device_name": bson.M{"$regex": search}},
+		bson.M{"client_id": bson.M{"$regex": search}},
+		bson.M{"location": search},
+	}
+
+	if bson.IsObjectIdHex(search) {
+		or = append(or, bson.M{"_id": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"zone": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"sensors": bson.ObjectIdHex(search)})
+	}
+
+	return bson.M{
+		"$or": or,
+	}
 }
 
 func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
@@ -75,11 +97,35 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 	return Error
 }
 
-func GetSensorGrids(sensorGrids *[]SensorGrid, session *mgo.Session) *utils.RequestError {
+func GetSensorGrids(sensorGrids *[]SensorGrid, UrlQuery map[string]string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorGridCollection(session)
 
-	iter := c.Find(nil).Iter()
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchSensorGridQuery(search)
+	}
+
+	var iter *mgo.Iter
+
+	q := c.Find(query)
+
+	if UrlQuery["p"] != "" {
+		p, _ := strconv.Atoi(UrlQuery["p"])
+		s := 10
+		if UrlQuery["s"] != "" {
+			s, _ = strconv.Atoi(UrlQuery["s"])
+		}
+
+		skip := p * s
+
+		iter = q.Skip(skip).Limit(s).Iter()
+
+	} else {
+		iter = q.Iter()
+	}
 
 	IterError := iter.All(sensorGrids)
 
@@ -92,6 +138,31 @@ func GetSensorGrids(sensorGrids *[]SensorGrid, session *mgo.Session) *utils.Requ
 	}
 
 	return Error
+}
+
+func CountSensorGrids(UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
+	var Error *utils.RequestError
+	var result int
+	c := SensorGridCollection(session)
+
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchSensorGridQuery(search)
+	}
+
+	var CountError error
+	result, CountError = c.Find(query).Count()
+
+	if CountError != nil {
+		Error = utils.BadRequestError("Error Count SensorGrids")
+		log.WithFields(log.Fields{
+			"message": CountError.Error(),
+		}).Error("SensorGridCountError")
+	}
+
+	return result, Error
 }
 
 func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.RequestError {

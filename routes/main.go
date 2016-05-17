@@ -35,28 +35,27 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 			logout := _default(controllers.Logout)
 			oauth.GET("/logout", middleware.Admin(session.Copy()), logout)
-			
+
 			DisplayName := _default(controllers.SetOauthDisplayName)
 			oauth.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
-			
+
 			Email := _default(controllers.SetOauthEmail)
 			oauth.PUT("/email", middleware.Admin(session.Copy()), middleware.Body(), Email)
-			
+
 			Password := _default(controllers.SetOauthPassword)
 			oauth.PUT("/password", middleware.Admin(session.Copy()), middleware.Body(), Password)
-			
+
 			Delete := _default(controllers.DeleteOauth)
 			oauth.DELETE("", middleware.Admin(session.Copy()), Delete)
-			
+
 			Invitate := _default(controllers.Invite)
 			oauth.POST("/invite", middleware.Admin(session.Copy()), middleware.Body(), Invitate)
-			
-			
+
 			CheckInvitation := _default(controllers.CheckInvitation)
-			oauth.GET("/invitation/:code",  CheckInvitation)
+			oauth.GET("/invitation/:code", CheckInvitation)
 			Invitation := _default(controllers.Invitation)
 			oauth.POST("/invitation/:code", middleware.Body(), Invitation)
-			
+
 		}
 
 		magnitude := api.Group("/magnitude")
@@ -107,10 +106,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				}
 
 			}
-		
 
 		}
-		
+
 		magnitudes := api.Group("/magnitudes")
 		{
 			All := _default(controllers.GetMagnitudes)
@@ -119,17 +117,12 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			magnitudes.GET("/count", middleware.Admin(session.Copy()), Count)
 
 		}
-		
-		
-		
 
 		zone := api.Group("/zone")
 		{
 			Create := _default(controllers.CreateZone)
 			zone.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
 
-			All := _default(controllers.GetZones)
-			zone.GET("", middleware.Admin(session.Copy()), All)
 			WithID := zone.Group("/:id")
 			{
 
@@ -154,12 +147,28 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			}
 		}
 
+		zones := api.Group("/zones")
+		{
+			All := _default(controllers.GetZones)
+			zones.GET("", middleware.Admin(session.Copy()), All)
+			Count := _default(controllers.CountZones)
+			zones.GET("/count", middleware.Admin(session.Copy()), Count)
+
+		}
+
+		sensorGrids := api.Group("/sensor_grids")
+		{
+			All := _default(controllers.GetSensorGrids)
+			sensorGrids.GET("", middleware.Admin(session.Copy()), All)
+			Count := _default(controllers.CountSensorGrids)
+			sensorGrids.GET("/count", middleware.Admin(session.Copy()), Count)
+
+		}
+
 		sensorGrid := api.Group("/sensor_grid")
 		{
 			Create := _default(controllers.CreateSensorGrid)
 			sensorGrid.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
-			All := _default(controllers.GetSensorGrids)
-			sensorGrid.GET("", middleware.Admin(session.Copy()), All)
 
 			WithID := sensorGrid.Group("/:id")
 			{
@@ -192,12 +201,16 @@ func Set(router *gin.Engine, session *mgo.Session) {
 					AllSensors := _default(controllers.GetSensors)
 					sensors.GET("", middleware.Admin(session.Copy()), AllSensors)
 
+					Count := _default(controllers.CountSensors)
+					sensors.GET("/count", middleware.Admin(session.Copy()), Count)
+
 					DelSensor := _default(controllers.DeleteSensorByGrid)
 					sensors.DELETE("/:sensor_id", middleware.Admin(session.Copy()), DelSensor)
 				}
 
 			}
 		}
+
 		sensor := api.Group("/sensor")
 		{
 			Create := _default(controllers.CreateSensor)
@@ -213,20 +226,20 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				DisplayName := _default(controllers.SetSensorDisplayName)
 				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
-				
+
 				Magnitude := _default(controllers.SetSensorMagnitude)
 				WithID.PUT("/magnitude", middleware.Admin(session.Copy()), middleware.Body(), Magnitude)
 			}
 
 		}
-		
-		task:=api.Group("/task")
+
+		task := api.Group("/task")
 		{
 			Create := _default(controllers.CreateTask)
 			task.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
 			All := _default(controllers.GetTasks)
 			task.GET("", middleware.Admin(session.Copy()), All)
-			
+
 			WithID := task.Group("/:id")
 			{
 				Update := _default(controllers.UpdateTask)
@@ -234,24 +247,22 @@ func Set(router *gin.Engine, session *mgo.Session) {
 				Delete := _default(controllers.DeleteTask)
 				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
 			}
-			
+
 		}
 
 	}
-	
-	
+
 	push := router.Group("/push", middleware.PushService())
 	{
-		
-			push.GET("/credentials", controllers.PushCredentialsConfig)
-			
-			SensorRegistry:=_default(controllers.PushSensorRegistry)
-			push.POST("/sensor_grid", middleware.Body(), SensorRegistry)
-			
-			
-			CheckSensorGrid:=_default(controllers.CheckSensorGrid)
-			push.POST("/sensor_grid/check", middleware.Body(), CheckSensorGrid)
-		
+
+		push.GET("/credentials", controllers.PushCredentialsConfig)
+
+		SensorRegistry := _default(controllers.PushSensorRegistry)
+		push.POST("/sensor_grid", middleware.Body(), SensorRegistry)
+
+		CheckSensorGrid := _default(controllers.CheckSensorGrid)
+		push.POST("/sensor_grid/check", middleware.Body(), CheckSensorGrid)
+
 	}
 
 	router.NoRoute(func(c *gin.Context) {
