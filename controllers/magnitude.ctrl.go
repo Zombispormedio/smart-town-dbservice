@@ -33,14 +33,32 @@ func GetMagnitudes(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
 	result:= []models.Magnitude{}
+	
+	keysQueries:=[]string{"search", "p", "s"}
+	queries:=utils.Queries(c, keysQueries)
 
-	GetAllError := models.GetMagnitudes(&result, session)
+	GetAllError := models.GetMagnitudes(&result, queries, session)
 	if GetAllError == nil {
 		response.Success(c, result)
 	} else {
 		response.Error(c, GetAllError)
 	}
 
+}
+
+func CountMagnitudes(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	keysQueries:=[]string{"search"}
+	queries:=utils.Queries(c, keysQueries)
+
+	result, CountError := models.CountMagnitudes(queries, session)
+	if CountError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, CountError)
+	}
+	
 }
 
 func DeleteMagnitude(c *gin.Context, session *mgo.Session) {

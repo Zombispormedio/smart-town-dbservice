@@ -13,11 +13,11 @@ import (
 )
 
 type Task struct {
-	ID bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-
-	DisplayName string `bson:"display_name"  json:"display_name"`
-	Webhook     string `bson:"webhook"  json:"webhook"`
-	Frequency   string `bson:"frequency"  json:"frequency"`
+	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+	Ref         int         `bson:"ref,omitempty" json:"ref"`
+	DisplayName string        `bson:"display_name"  json:"display_name"`
+	Webhook     string        `bson:"webhook"  json:"webhook"`
+	Frequency   string        `bson:"frequency"  json:"frequency"`
 
 	CreatedBy bson.ObjectId `bson:"created_by"    json:"created_by"`
 	CreatedAt time.Time     `bson:"created_at"    json:"created_at"`
@@ -40,6 +40,22 @@ func (task *Task) New(obj map[string]interface{}, userID string, session *mgo.Se
 	task.CreatedBy = bson.ObjectIdHex(userID)
 
 	c := TaskCollection(session)
+
+
+	var RefError error
+	
+	task.Ref, RefError = NextID(c)
+	
+
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("TaskRefError")
+
+		return utils.BadRequestError("RefError Task: " + RefError.Error())
+
+	}
 
 	InsertError := c.Insert(task)
 

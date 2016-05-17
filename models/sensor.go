@@ -15,9 +15,9 @@ import (
 )
 
 type Sensor struct {
-	ID     bson.ObjectId `bson:"_id,omitempty" json:"_id"`
-	NodeID string        `bson:"node_id" json:"node_id"`
-
+	ID            bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+	NodeID        string        `bson:"node_id" json:"node_id"`
+	Ref           int         `bson:"ref,omitempty" json:"ref"`
 	DisplayName   string        `bson:"display_name"  json:"display_name"`
 	DeviceName    string        `bson:"device_name"  json:"device_name"`
 	Description   string        `bson:"description"  json:"description"`
@@ -56,10 +56,22 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 
 	c := SensorCollection(session)
 
+	var RefError error
+	sensor.Ref, RefError = NextID(c)
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("SensorRefError")
+
+		return utils.BadRequestError("RefError Sensor: " + RefError.Error())
+
+	}
+
 	InsertError := c.Insert(sensor)
 
 	if InsertError != nil {
-		Error = utils.BadRequestError("Error Inserting Sensor")
+		Error = utils.BadRequestError("InsertError Sensor: " + InsertError.Error())
 
 		log.WithFields(log.Fields{
 			"message": InsertError.Error(),

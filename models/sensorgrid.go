@@ -15,6 +15,7 @@ import (
 
 type SensorGrid struct {
 	ID           bson.ObjectId   `bson:"_id,omitempty" json:"_id"`
+	Ref          int           `bson:"ref,omitempty" json:"ref"`
 	ClientID     string          `bson:"client_id" json:"client_id"`
 	ClientSecret string          `bson:"client_secret" json:"client_secret"`
 	DisplayName  string          `bson:"display_name"  json:"display_name"`
@@ -47,6 +48,19 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 	sensorGrid.CreatedBy = bson.ObjectIdHex(userID)
 
 	c := SensorGridCollection(session)
+
+	var RefError error
+
+	sensorGrid.Ref, RefError = NextID(c)
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("SensorRefError")
+
+		return utils.BadRequestError("RefError SensorGrid: " + RefError.Error())
+
+	}
 
 	InsertError := c.Insert(sensorGrid)
 
@@ -327,17 +341,16 @@ func (sensorGrid *SensorGrid) CheckCredentials(ClientID string, ClientSecret str
 	FindingError := c.Find(bson.M{"client_id": ClientID}).One(sensorGrid)
 
 	if FindingError != nil {
-		
+
 		log.WithFields(log.Fields{
 			"client_id": ClientID,
 		}).Error("SensorCheckCredencialsError")
-		
-		return  utils.NoAuthError("Error CheckCredentials- ClientID not found: " + ClientID)
+
+		return utils.NoAuthError("Error CheckCredentials- ClientID not found: " + ClientID)
 	}
-	
-	
-	if ClientSecret != sensorGrid.ClientSecret{
-		Error=utils.BadRequestError("Error CheckCredentials- Bad ClientSecret: " + ClientID)
+
+	if ClientSecret != sensorGrid.ClientSecret {
+		Error = utils.BadRequestError("Error CheckCredentials- Bad ClientSecret: " + ClientID)
 	}
 
 	return Error

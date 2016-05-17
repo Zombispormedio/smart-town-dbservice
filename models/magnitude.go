@@ -2,6 +2,7 @@ package models
 
 import (
 	"reflect"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -46,6 +47,7 @@ func (analog *Analog) FillByMap(Map map[string]interface{}, LiteralTag string) {
 
 type Magnitude struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+	Ref         int           `bson:"ref,omitempty" json:"ref"`
 	DisplayName string        `bson:"display_name"  json:"display_name"`
 	Type        string        `bson:"type"  json:"type"`
 	AnalogUnits []Analog      `bson:"analog_units"  json:"analog_units"`
@@ -65,13 +67,25 @@ func MagnitudeCollection(session *mgo.Session) *mgo.Collection {
 
 func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
+	c := MagnitudeCollection(session)
 
 	magnitude.FillByMap(obj, "json")
 
+	var RefError error
+
+	magnitude.Ref, RefError = NextID(c)
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("MagnitudeRefError")
+
+		return utils.BadRequestError("RefError Magnitude")
+
+	}
+
 	magnitude.CreatedAt = bson.Now()
 	magnitude.CreatedBy = bson.ObjectIdHex(userID)
-
-	c := MagnitudeCollection(session)
 
 	InsertError := c.Insert(magnitude)
 
@@ -85,11 +99,61 @@ func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, sessi
 	return Error
 }
 
-func GetMagnitudes(magnitudes *[]Magnitude, session *mgo.Session) *utils.RequestError {
+func SearchMagnitudeQuery(search string) bson.M {
+	or := []bson.M{
+		bson.M{"display_name": bson.M{"$regex": search}},
+		bson.M{"ref": bson.M{"$regex": search}},
+		bson.M{"analog_units.display_name": bson.M{"$regex": search}},
+		bson.M{"analog_units.symbol": bson.M{"$regex": search}},
+		bson.M{"conversion.display_name": bson.M{"$regex": search}},
+		bson.M{"conversion.operation": bson.M{"$regex": search}},
+		bson.M{"digital_units.on": bson.M{"$regex": search}},
+		bson.M{"digital_units.off": bson.M{"$regex": search}},
+	}
+
+	if bson.IsObjectIdHex(search) {
+		or = append(or, bson.M{"_id": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"created_by": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"analog_units._id": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"digital_units._id": bson.ObjectIdHex(search)})
+		or = append(or, bson.M{"conversions._id": bson.ObjectIdHex(search)})
+
+	}
+
+	return bson.M{
+		"$or": or,
+	}
+}
+
+func GetMagnitudes(magnitudes *[]Magnitude, UrlQuery map[string]string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := MagnitudeCollection(session)
 
-	iter := c.Find(nil).Select(bson.M{"units": 0, "conversions": 0}).Iter()
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchMagnitudeQuery(search)
+	}
+
+	var iter *mgo.Iter
+
+	q := c.Find(query).Select(bson.M{"units": 0, "conversions": 0})
+
+	if UrlQuery["p"] != "" {
+		p, _ := strconv.Atoi(UrlQuery["p"])
+		s := 10
+		if UrlQuery["s"] != "" {
+			s, _ = strconv.Atoi(UrlQuery["s"])
+		}
+
+		skip := p * s
+
+		iter = q.Skip(skip).Limit(s).Iter()
+
+	} else {
+		iter = q.Iter()
+	}
 
 	IterError := iter.All(magnitudes)
 
@@ -101,6 +165,31 @@ func GetMagnitudes(magnitudes *[]Magnitude, session *mgo.Session) *utils.Request
 	}
 
 	return Error
+}
+
+func CountMagnitudes(UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
+	var Error *utils.RequestError
+	var result int
+	c := MagnitudeCollection(session)
+
+	var query bson.M
+
+	if UrlQuery["search"] != "" {
+		search := UrlQuery["search"]
+		query = SearchMagnitudeQuery(search)
+	}
+
+	var CountError error
+	result, CountError = c.Find(query).Count()
+
+	if CountError != nil {
+		Error = utils.BadRequestError("Error Count Magnitudes")
+		log.WithFields(log.Fields{
+			"message": CountError.Error(),
+		}).Error("MagnitudeCountError")
+	}
+
+	return result, Error
 }
 
 func DeleteMagnitude(ID string, session *mgo.Session) *utils.RequestError {

@@ -26,6 +26,7 @@ func (shape *GeoShape) FillByMap(Map map[string]interface{}, LiteralTag string) 
 
 type Zone struct {
 	ID          bson.ObjectId `bson:"_id,omitempty" json:"_id"`
+	Ref         int         `bson:"ref,omitempty" json:"ref"`
 	DisplayName string        `bson:"display_name"  json:"display_name"`
 	Description string        `bson:"description"  json:"description"`
 	Keywords    []string      `bson:"keywords" json:"keywords"`
@@ -52,6 +53,19 @@ func (zone *Zone) New(obj map[string]interface{}, userID string, session *mgo.Se
 	zone.CreatedBy = bson.ObjectIdHex(userID)
 
 	c := ZoneCollection(session)
+	
+	var RefError error
+	
+	zone.Ref, RefError = NextID(c)
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("ZoneRefError")
+
+		return utils.BadRequestError("RefError Zone: "+RefError.Error())
+
+	}
 
 	InsertError := c.Insert(zone)
 
