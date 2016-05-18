@@ -172,6 +172,38 @@ func CountZones(UrlQuery map[string]string, session *mgo.Session) (int, *utils.R
 	return result, Error
 }
 
+
+func VerifyRefZone(RefStr string, session *mgo.Session) (bool, *utils.RequestError) {
+	var Error *utils.RequestError
+	var result bool
+	c := ZoneCollection(session)
+	
+	
+	Ref, _:=strconv.Atoi(RefStr)
+	
+	count,  CountError:=c.Find(bson.M{"ref": Ref}).Count()
+	
+	if CountError != nil {
+		Error = utils.BadRequestError("Error Ref Zones: "+CountError.Error())
+		log.WithFields(log.Fields{
+			"message": CountError.Error(),
+		}).Error("ZoneRefError")
+	}
+	
+
+	
+	if count==1{
+		result=true
+	}
+
+	
+	
+	
+	return result, Error
+}
+
+
+
 func DeleteZone(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := ZoneCollection(session)

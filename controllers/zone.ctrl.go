@@ -173,3 +173,21 @@ func SetZoneShape(c *gin.Context, session *mgo.Session) {
 
 	}
 }
+
+
+
+	
+	
+func VerifyRefZone(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	ref := c.Param("ref")
+
+	result, RefError := models.VerifyRefZone(ref, session)
+	if RefError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, RefError)
+	}
+	
+}

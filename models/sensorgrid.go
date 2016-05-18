@@ -62,6 +62,34 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 	var Error *utils.RequestError
 
 	sensorGrid.FillByMap(obj, "json")
+
+	RefError := sensorGrid.Init(userID, session)
+
+	if RefError != nil {
+		log.WithFields(log.Fields{
+			"message": RefError.Error(),
+		}).Error("SensorRefError")
+
+		return utils.BadRequestError("RefError SensorGrid: " + RefError.Error())
+
+	}
+
+	c := SensorGridCollection(session)
+
+	InsertError := c.Insert(sensorGrid)
+
+	if InsertError != nil {
+		Error = utils.BadRequestError("Error Inserting")
+
+		log.WithFields(log.Fields{
+			"message": InsertError.Error(),
+		}).Error("SensorGridInsertError")
+	}
+
+	return Error
+}
+
+func (sensorGrid *SensorGrid) Init(userID string, session *mgo.Session) error {
 	newID, _ := uuid.NewV4()
 	sensorGrid.ClientID = newID.String()
 
@@ -75,23 +103,61 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 
 	sensorGrid.Ref, RefError = NextID(c)
 
-	if RefError != nil {
-		log.WithFields(log.Fields{
-			"message": RefError.Error(),
-		}).Error("SensorRefError")
+	return RefError
 
-		return utils.BadRequestError("RefError SensorGrid: " + RefError.Error())
+}
 
-	}
+func ImportSensorGrids(grids []map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorGridCollection(session)
+	for _, v := range grids {
 
-	InsertError := c.Insert(sensorGrid)
+		grid := SensorGrid{}
+		RefError := grid.Init(userID, session)
 
-	if InsertError != nil {
-		Error = utils.BadRequestError("Error Inserting")
+		if RefError != nil {
+			Error = utils.BadRequestError("RefError SensorGrid: " + RefError.Error())
+			break
+		}
 
-		log.WithFields(log.Fields{
-			"message": InsertError.Error(),
-		}).Error("SensorGridInsertError")
+		if v["description"] != nil {
+			grid.Description = v["description"].(string)
+		}
+
+		if v["display_name"] != nil {
+			grid.DisplayName = v["display_name"].(string)
+		}
+
+		if v["device_name"] != nil {
+			grid.DeviceName = v["device_name"].(string)
+		}
+
+		if v["location_longitude"] != nil && v["location_latitude"] != nil {
+			long, _ := strconv.ParseFloat(v["location_longitude"].(string), 64)
+			lat, _ := strconv.ParseFloat(v["location_latitude"].(string), 64)
+			grid.Location = []float64{
+				long,lat, 
+			}
+		}
+
+		if v["zone_ref"] != nil {
+			ZoneID, ZoneError := GetIDbyRef(v["zone_ref"].(string), ZoneCollection(session))
+
+			if ZoneError != nil {
+				Error = utils.BadRequestError("ZoneError SensorGrid: " + ZoneError.Error())
+				break
+			}
+			grid.Zone = ZoneID
+		}
+
+		InsertError := c.Insert(grid)
+
+		if InsertError != nil {
+			Error = utils.BadRequestError("Error Inserting: " + InsertError.Error() + " Ref: " + string(grid.Ref))
+
+			break
+		}
+
 	}
 
 	return Error

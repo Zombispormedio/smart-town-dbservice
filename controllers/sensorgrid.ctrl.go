@@ -6,6 +6,7 @@ import (
 	"github.com/Zombispormedio/smartdb/lib/utils"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
+
 )
 
 func CreateSensorGrid(c *gin.Context, session *mgo.Session) {
@@ -28,6 +29,27 @@ func CreateSensorGrid(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+func ImportSensorGrids(c *gin.Context, session *mgo.Session) {
+	
+	preUser, _ := c.Get("user")
+	user := preUser.(string)
+
+	bodyInterface, _ := c.Get("body")
+	
+	body:=utils.SliceInterfaceToSliceMap(bodyInterface)
+	
+	ImportError := models.ImportSensorGrids(body, user, session)
+	
+	if ImportError == nil {
+		GetSensorGrids(c, session)
+	} else {
+		response.Error(c, ImportError)
+		session.Close()
+	}
+}
+
+
 
 func GetSensorGrids(c *gin.Context, session *mgo.Session) {
 

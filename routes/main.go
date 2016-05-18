@@ -153,6 +153,8 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			zones.GET("", middleware.Admin(session.Copy()), All)
 			Count := _default(controllers.CountZones)
 			zones.GET("/count", middleware.Admin(session.Copy()), Count)
+			Ref := _default(controllers.VerifyRefZone)
+			zones.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
 
 		}
 
@@ -162,6 +164,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			sensorGrids.GET("", middleware.Admin(session.Copy()), All)
 			Count := _default(controllers.CountSensorGrids)
 			sensorGrids.GET("/count", middleware.Admin(session.Copy()), Count)
+
+			Import := _default(controllers.ImportSensorGrids)
+			sensorGrids.POST("/import", middleware.Admin(session.Copy()), middleware.Body(), Import)
 
 		}
 
