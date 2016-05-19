@@ -68,7 +68,7 @@ func (sensorGrid *SensorGrid) New(obj map[string]interface{}, userID string, ses
 	if RefError != nil {
 		log.WithFields(log.Fields{
 			"message": RefError.Error(),
-		}).Error("SensorRefError")
+		}).Error("SensorGridRefError")
 
 		return utils.BadRequestError("RefError SensorGrid: " + RefError.Error())
 
@@ -140,7 +140,7 @@ func ImportSensorGrids(grids []map[string]interface{}, userID string, session *m
 			}
 		}
 
-		if v["zone_ref"] != nil {
+		if v["zone_ref"] != nil && v["zone_ref"] !=""{
 			ZoneID, ZoneError := GetIDbyRef(v["zone_ref"].(string), ZoneCollection(session))
 
 			if ZoneError != nil {
@@ -230,6 +230,35 @@ func CountSensorGrids(UrlQuery map[string]string, session *mgo.Session) (int, *u
 
 	return result, Error
 }
+
+
+
+
+func VerifyRefSensorGrid(RefStr string, session *mgo.Session) (bool, *utils.RequestError) {
+	var Error *utils.RequestError
+	var result bool
+	c := SensorGridCollection(session)
+	
+	
+	Ref, _:=strconv.Atoi(RefStr)
+	
+	count,  CountError:=c.Find(bson.M{"ref": Ref}).Count()
+	
+	if CountError != nil {
+		Error = utils.BadRequestError("Error Ref SensorGrid: "+CountError.Error())
+		log.WithFields(log.Fields{
+			"message": CountError.Error(),
+		}).Error("SensorGridRefError")
+	}
+
+	if count==1{
+		result=true
+	}
+
+	return result, Error
+}
+
+
 
 func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError

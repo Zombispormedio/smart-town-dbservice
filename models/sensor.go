@@ -69,17 +69,7 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 	var Error *utils.RequestError
 
 	sensor.FillByMap(obj, "json")
-	sensor.ID = bson.NewObjectId()
-
-	newID, _ := uuid.NewV4()
-	sensor.NodeID = newID.String()
-	sensor.CreatedAt = bson.Now()
-	sensor.CreatedBy = bson.ObjectIdHex(userID)
-
-	c := SensorCollection(session)
-
-	var RefError error
-	sensor.Ref, RefError = NextID(c)
+	RefError := sensor.Init(userID, session)
 
 	if RefError != nil {
 		log.WithFields(log.Fields{
@@ -89,6 +79,7 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 		return utils.BadRequestError("RefError Sensor: " + RefError.Error())
 
 	}
+	c := SensorCollection(session)
 
 	InsertError := c.Insert(sensor)
 
@@ -114,6 +105,103 @@ func (sensor *Sensor) New(obj map[string]interface{}, userID string, session *mg
 			"message": UpdatingError.Error(),
 			"id":      sensor.SensorGrid,
 		}).Error("SensorGridSensorInsertError")
+	}
+
+	return Error
+}
+
+func (sensor *Sensor) Init(userID string, session *mgo.Session) error {
+	sensor.ID = bson.NewObjectId()
+
+	newID, _ := uuid.NewV4()
+	sensor.NodeID = newID.String()
+	sensor.CreatedAt = bson.Now()
+	sensor.CreatedBy = bson.ObjectIdHex(userID)
+
+	c := SensorCollection(session)
+
+	var RefError error
+
+	sensor.Ref, RefError = NextID(c)
+
+	return RefError
+
+}
+
+func ImportSensors(sensors []map[string]interface{}, userID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+	for _, v := range sensors {
+		
+		sensor := Sensor{}
+		RefError := sensor.Init(userID, session)
+
+		if RefError != nil {
+			Error = utils.BadRequestError("RefError Sensor: " + RefError.Error())
+			break
+		}
+
+		if v["description"] != nil {
+			sensor.Description = v["description"].(string)
+		}
+
+		if v["display_name"] != nil {
+			sensor.DisplayName = v["display_name"].(string)
+		}
+
+		if v["device_name"] != nil {
+			sensor.DeviceName = v["device_name"].(string)
+		}
+		
+		if v["is_raw_data"] != nil {
+			sensor.IsRawData,_=strconv.ParseBool(v["is_raw_data"].(string))
+			
+			if sensor.IsRawData && v["raw_conversion"]!=nil{
+				sensor.RawConversion=v["raw_conversion"].(string)
+			}
+		}
+
+		if v["magnitude_ref"] != nil && v["magnitude_ref"] != "" {
+			magnitudeID, MagnitudeError := GetIDbyRef(v["magnitude_ref"].(string), MagnitudeCollection(session))
+
+			if MagnitudeError != nil {
+				Error = utils.BadRequestError("MagnitudeError Sensor: " + MagnitudeError.Error())
+				break
+			}
+			sensor.Magnitude = magnitudeID
+		}
+
+		if v["grid_ref"] != nil && v["grid_ref"] != "" {
+			gridID, GridError := GetIDbyRef(v["grid_ref"].(string), SensorGridCollection(session))
+
+			if GridError != nil {
+				Error = utils.BadRequestError("GridError Sensor: " + GridError.Error())
+				break
+			}
+			sensor.SensorGrid = gridID
+
+			sensorGrid := SensorGridCollection(session)
+
+			UpdatingError := sensorGrid.UpdateId(sensor.SensorGrid, bson.M{"$addToSet": bson.M{"sensors": sensor.ID}})
+
+			if UpdatingError != nil {
+				Error = utils.BadRequestError("Error Pushing  Sensor i SensorGrid: " + sensor.SensorGrid.String())
+
+				log.WithFields(log.Fields{
+					"message": UpdatingError.Error(),
+					"id":      sensor.SensorGrid,
+				}).Error("SensorGridSensorInsertError")
+			}
+		}
+		
+		InsertError := c.Insert(sensor)
+
+		if InsertError != nil {
+			Error = utils.BadRequestError("Error Inserting: " + InsertError.Error() + " Ref: " + string(sensor.Ref))
+
+			break
+		}
+
 	}
 
 	return Error
@@ -165,6 +253,42 @@ func GetSensors(sensors *[]Sensor, sensorGrid string, UrlQuery map[string]string
 	return Error
 }
 
+func SensorsNotifications(sensors *[]Sensor, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+	
+	IterError :=  c.Find(bson.M{"notify":true}).Iter().All(sensors)
+	
+	if IterError != nil {
+		Error = utils.BadRequestError("Error Sensors Notifications")
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("SensorsNotificationsIteratorError")
+	}
+	
+	return Error
+}
+
+func FixSensor(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+	c := SensorCollection(session)
+	
+
+
+	UpdatingError:=c.UpdateId(bson.ObjectIdHex(ID), bson.M{"$set": bson.M{"notify":false}})
+
+	if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+			"id":      ID,
+		}).Warn("SensorTransmissorUpdateError")
+	}
+	
+	return Error
+}
+
+
 func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
 	var Error *utils.RequestError
 	var result int
@@ -175,7 +299,7 @@ func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Se
 	if UrlQuery["search"] != "" {
 		search := UrlQuery["search"]
 		query = SearchSensorQuery(search)
-	}else {
+	} else {
 		query = bson.M{}
 	}
 
@@ -183,8 +307,6 @@ func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Se
 
 	var CountError error
 	result, CountError = c.Find(query).Count()
-	
-
 
 	if CountError != nil {
 		Error = utils.BadRequestError("Error Count Sensors")

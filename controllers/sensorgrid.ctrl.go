@@ -257,3 +257,16 @@ func DeleteSensorByGrid(c *gin.Context, session *mgo.Session) {
 
 
 
+func VerifyRefSensorGrid(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	ref := c.Param("ref")
+
+	result, RefError := models.VerifyRefSensorGrid(ref, session)
+	if RefError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, RefError)
+	}
+	
+}

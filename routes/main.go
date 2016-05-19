@@ -116,6 +116,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			Count := _default(controllers.CountMagnitudes)
 			magnitudes.GET("/count", middleware.Admin(session.Copy()), Count)
 
+			Ref := _default(controllers.VerifyRefMagnitude)
+			magnitudes.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
+
 		}
 
 		zone := api.Group("/zone")
@@ -168,6 +171,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			Import := _default(controllers.ImportSensorGrids)
 			sensorGrids.POST("/import", middleware.Admin(session.Copy()), middleware.Body(), Import)
 
+			Ref := _default(controllers.VerifyRefSensorGrid)
+			sensorGrids.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
+
 		}
 
 		sensorGrid := api.Group("/sensor_grid")
@@ -216,6 +222,17 @@ func Set(router *gin.Engine, session *mgo.Session) {
 			}
 		}
 
+		sensors := api.Group("/sensors")
+		{
+
+			Import := _default(controllers.ImportSensors)
+			sensors.POST("/import", middleware.Admin(session.Copy()), middleware.Body(), Import)
+
+			Notifications := _default(controllers.SensorsNotifications)
+			sensors.GET("/notifications", middleware.Admin(session.Copy()), Notifications)
+
+		}
+
 		sensor := api.Group("/sensor")
 		{
 			Create := _default(controllers.CreateSensor)
@@ -234,6 +251,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				Magnitude := _default(controllers.SetSensorMagnitude)
 				WithID.PUT("/magnitude", middleware.Admin(session.Copy()), middleware.Body(), Magnitude)
+				
+				Fix := _default(controllers.FixSensor)
+				WithID.GET("/fix", middleware.Admin(session.Copy()),Fix)
 			}
 
 		}

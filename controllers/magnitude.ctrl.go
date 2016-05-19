@@ -259,3 +259,18 @@ func DeleteMagnitudeConversion(c *gin.Context, session *mgo.Session) {
 	}
 
 }
+
+
+func VerifyRefMagnitude(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	ref := c.Param("ref")
+
+	result, RefError := models.VerifyRefMagnitude(ref, session)
+	if RefError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, RefError)
+	}
+	
+}

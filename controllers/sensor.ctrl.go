@@ -35,8 +35,6 @@ func GetSensors(c *gin.Context, session *mgo.Session) {
 	id := c.Param("id")
 	result:= []models.Sensor{}
 
-
-	
 	keysQueries := []string{"search", "p", "s"}
 	queries := utils.Queries(c, keysQueries)
 
@@ -146,4 +144,51 @@ func SetSensorMagnitude(c *gin.Context, session *mgo.Session) {
 
 	}
 
+}
+
+
+func ImportSensors(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+	preUser, _ := c.Get("user")
+	user := preUser.(string)
+
+	bodyInterface, _ := c.Get("body")
+	
+	body:=utils.SliceInterfaceToSliceMap(bodyInterface)
+	
+	ImportError := models.ImportSensors(body, user, session)
+	
+	if ImportError == nil {
+		response.SuccessMessage(c, "Sensors Imported")
+	} else {
+		response.Error(c, ImportError)
+	
+	}
+}
+
+func SensorsNotifications(c *gin.Context, session *mgo.Session){
+	defer session.Close()
+	
+	result:= []models.Sensor{}
+	
+	GetAllError := models.SensorsNotifications(&result, session)
+	
+	if GetAllError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, GetAllError)
+	}
+}
+
+func FixSensor(c *gin.Context, session *mgo.Session){
+	id := c.Param("id")
+
+	FixError := models.FixSensor(id, session)
+
+	if FixError == nil {
+		SensorsNotifications(c, session)
+	} else {
+		response.Error(c, FixError)
+		session.Close()
+	}
 }

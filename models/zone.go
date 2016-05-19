@@ -189,16 +189,11 @@ func VerifyRefZone(RefStr string, session *mgo.Session) (bool, *utils.RequestErr
 			"message": CountError.Error(),
 		}).Error("ZoneRefError")
 	}
-	
 
-	
 	if count==1{
 		result=true
 	}
 
-	
-	
-	
 	return result, Error
 }
 
