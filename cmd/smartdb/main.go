@@ -1,38 +1,40 @@
 package main
 
 import (
-    "os"
-   
-    "github.com/gin-gonic/gin"
-    "github.com/Zombispormedio/smartdb/config"
-    "github.com/Zombispormedio/smartdb/routes"
+	"os"
 
+	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/routes"
+	"github.com/gin-gonic/gin"
 )
-
-
 
 func main() {
 
-    router := gin.New()
-    config.ServerConfig(router)
+	router := gin.New()
+	config.ServerConfig(router)
 
-    session:=config.SessionDB()
+	session := config.SessionDB()
 
+	if session == nil {
+		panic("MongodbSession Fault")
+	} else {
+		defer session.Close()
+	}
 
-    if session == nil{
-        panic("MongodbSession Fault")
-    }else{
-        defer session.Close()
-    }
+	rabbit, RabbitError := config.CreateConsumer()
 
+	if RabbitError != nil {
+		panic(RabbitError)
+	}
 
-    routes.Set(router, session) 
+	routes.Set(router, session)
 
-    port := os.Getenv("PORT")
+	port := os.Getenv("PORT")
 
-    if port == "" {
-        port="5060"
-    }
+	if port == "" {
+		port = "5060"
+	}
 
-    router.Run(":" + port)
+	go router.Run(":" + port)
+	rabbit.Run()
 }

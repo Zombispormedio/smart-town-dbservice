@@ -5,7 +5,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/Zombispormedio/smart-push/lib/utils"
+	"github.com/Zombispormedio/smartdb/lib/utils"
 	"github.com/streadway/amqp"
 )
 
@@ -94,10 +94,10 @@ func (rabbit *Rabbit) PublishJSON(key string, body interface{}) error {
 	return Error
 }
 
-func (rabbit *Rabbit) AnonymousQueue() err {
-	var Error error
+func (rabbit *Rabbit) AnonymousQueue() error {
 
-	rabbit.Queue, Error = rabbit.Chan(
+
+	queue, Error := rabbit.Chan.QueueDeclare(
 		"",    // name
 		false, // durable
 		false, // delete when usused
@@ -105,10 +105,58 @@ func (rabbit *Rabbit) AnonymousQueue() err {
 		false, // no-wait
 		nil,   // arguments
 	)
+	rabbit.Queue=&queue
 
 	return Error
 }
 
-func (rabbit *Rabbit) BindKey(... keys) error{
+func (rabbit *Rabbit) BindKeys( keys ...string ) error{
+	var Error error
+	for _, k := range keys{
+		Error=rabbit.Chan.QueueBind(
+			rabbit.Queue.Name,
+			k,
+			rabbit.ExName,
+			false,
+			nil)
+		if Error != nil{
+			break
+		}
+		
+	}
+	
+	return Error
+}
+
+func (rabbit *Rabbit) UnbindKeys( keys ...string) error{
+	var Error error
+	for _, k := range keys{
+		Error=rabbit.Chan.QueueUnbind(
+			rabbit.Queue.Name,
+			k,
+			rabbit.ExName,
+			nil)
+		if Error != nil{
+			break
+		}
+		
+	}
+	
+	return Error
+}
+
+func (rabbit *Rabbit) Consume() (<-chan amqp.Delivery, error){
+	
+	msgs, err:=rabbit.Chan.Consume(
+		rabbit.Queue.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil)
+		
+	return msgs, err
 	
 }
+
