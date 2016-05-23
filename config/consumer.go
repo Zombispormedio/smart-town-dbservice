@@ -17,7 +17,7 @@ func CreateConsumer() (*Consumer, error) {
 	var Error error
 	consumer := Consumer{}
 
-	rClient, RError := rabbit.New(os.Getenv("EX_RABBIT"), "direct", true)
+	rClient, RError := rabbit.New(os.Getenv("EX_RABBIT"), "topic", true)
 
 	if RError != nil {
 		return nil, RError
@@ -42,7 +42,7 @@ func (consumer *Consumer) Bind() error {
 
 	var firstKey string
 	Error = store.Get("push_identifier", "Config", func(value string) {
-		firstKey = value
+		firstKey = value+".#"
 	})
     
     if Error != nil{

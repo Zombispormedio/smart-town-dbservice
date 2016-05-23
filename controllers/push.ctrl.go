@@ -29,7 +29,7 @@ func PushCredentialsConfig(consumer *config.Consumer)  func(c *gin.Context)  {
 
 			response.Success(c, ResponseData)
 			
-			Err:=consumer.ReBind()
+			consumer.ReBind()
 			
 
 		} else {
