@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/store"
 	"github.com/Zombispormedio/smartdb/lib/utils"
@@ -13,29 +12,33 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func PushCredentialsConfig(c *gin.Context) {
+func PushCredentialsConfig(consumer *config.Consumer)  func(c *gin.Context)  {
+	return func(c *gin.Context) {
+		newID, _ := uuid.NewV4()
+		PushID := newID.String()
 
-	newID, _ := uuid.NewV4()
-	PushID := newID.String()
+		Error := store.Put("push_identifier", PushID, "Config")
 
-	Error := store.Put("push_identifier", PushID, "Config")
+		if Error == nil {
 
-	if Error == nil {
+			ResponseData := struct {
+				Key string `json:"key"`
+			}{
+				PushID,
+			}
 
-		ResponseData := struct {
-			Key string `json:"key"`
-		}{
-			PushID,
+			response.Success(c, ResponseData)
+			
+			Err:=consumer.ReBind()
+			
+
+		} else {
+			log.WithFields(log.Fields{
+				"message": Error.Error(),
+			}).Error("PushCredentialsConfigError")
+
+			response.ErrorByString(c, 404, "Error storing new key")
 		}
-
-		response.Success(c, ResponseData)
-
-	} else {
-		log.WithFields(log.Fields{
-			"message": Error.Error(),
-		}).Error("PushCredentialsConfigError")
-
-		response.ErrorByString(c, 404, "Error storing new key")
 	}
 
 }
@@ -62,15 +65,14 @@ func PushSensorRegistry(c *gin.Context, session *mgo.Session) {
 
 	body, _ := c.Get("body")
 
-	Data:=utils.SliceInterfaceToSliceMap(body)
+	Data := utils.SliceInterfaceToSliceMap(body)
 
-	PushError:=models.PushSensorData(Data, session)
-	
+	PushError := models.PushSensorData(Data, session)
 
 	if PushError == nil {
-	response.SuccessMessage(c, "Perfect Pushover")
+		response.SuccessMessage(c, "Perfect Pushover")
 	} else {
-		response.Error(c,PushError)
+		response.Error(c, PushError)
 
 	}
 }

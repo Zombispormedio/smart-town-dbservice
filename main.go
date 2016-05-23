@@ -27,7 +27,7 @@ func main() {
 		panic(RabbitError)
 	}
 
-	routes.Set(router, session)
+	routes.Set(router, session, rabbit)
 
 	port := os.Getenv("PORT")
 

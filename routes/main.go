@@ -3,11 +3,12 @@ package routes
 import (
 	"github.com/Zombispormedio/smartdb/controllers"
 	"github.com/Zombispormedio/smartdb/middleware"
+	"github.com/Zombispormedio/smartdb/config"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 )
 
-func Set(router *gin.Engine, session *mgo.Session) {
+func Set(router *gin.Engine, session *mgo.Session, consumer *config.Consumer) {
 
 	_default := func(fn func(c *gin.Context, session *mgo.Session)) gin.HandlerFunc {
 		return func(c *gin.Context) {
@@ -282,7 +283,7 @@ func Set(router *gin.Engine, session *mgo.Session) {
 	push := router.Group("/push", middleware.PushService())
 	{
 
-		push.GET("/credentials", controllers.PushCredentialsConfig)
+		push.GET("/credentials", controllers.PushCredentialsConfig(consumer))
 
 		SensorRegistry := _default(controllers.PushSensorRegistry)
 		push.POST("/sensor_grid", middleware.Body(), SensorRegistry)
