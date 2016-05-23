@@ -17,13 +17,12 @@ func Set(router *gin.Engine, session *mgo.Session) {
 	}
 
 	router.GET("/", controllers.Hi)
+	Status := _default(controllers.Status)
+	router.GET("/status", Status)
 
 	api := router.Group("/api")
 	{
-		
-		Status := _default(controllers.Status)
-		api.GET("status", Status)
-		
+
 		oauth := api.Group("/oauth")
 		{
 
@@ -254,9 +253,9 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 				Magnitude := _default(controllers.SetSensorMagnitude)
 				WithID.PUT("/magnitude", middleware.Admin(session.Copy()), middleware.Body(), Magnitude)
-				
+
 				Fix := _default(controllers.FixSensor)
-				WithID.GET("/fix", middleware.Admin(session.Copy()),Fix)
+				WithID.GET("/fix", middleware.Admin(session.Copy()), Fix)
 			}
 
 		}
