@@ -55,7 +55,5 @@ func Success(c *gin.Context, data  interface{}){
 
     msg.Data=data
     
- 
-    
     c.JSON(200, msg)
 }

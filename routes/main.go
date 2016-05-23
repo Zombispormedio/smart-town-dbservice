@@ -20,7 +20,10 @@ func Set(router *gin.Engine, session *mgo.Session) {
 
 	api := router.Group("/api")
 	{
-
+		
+		Status := _default(controllers.Status)
+		api.GET("status", Status)
+		
 		oauth := api.Group("/oauth")
 		{
 
