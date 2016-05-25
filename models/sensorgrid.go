@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/lib/mqtt"
 	"github.com/Zombispormedio/smartdb/lib/struts"
 	"github.com/Zombispormedio/smartdb/lib/utils"
 	"github.com/nu7hatch/gouuid"
@@ -25,6 +26,7 @@ type SensorGrid struct {
 	Location     []float64       `bson:"location" json:"location"`
 	Zone         bson.ObjectId   `bson:"zone" json:"zone"`
 	Sensors      []bson.ObjectId `bson:"sensors" json:"sensors"`
+	MQTT         bool            `bson:"mqtt" json:"mqtt"`
 	CreatedBy    bson.ObjectId   `bson:"created_by"    json:"created_by"`
 	CreatedAt    time.Time       `bson:"created_at"    json:"created_at"`
 }
@@ -136,11 +138,11 @@ func ImportSensorGrids(grids []map[string]interface{}, userID string, session *m
 			long, _ := strconv.ParseFloat(v["location_longitude"].(string), 64)
 			lat, _ := strconv.ParseFloat(v["location_latitude"].(string), 64)
 			grid.Location = []float64{
-				long,lat, 
+				long, lat,
 			}
 		}
 
-		if v["zone_ref"] != nil && v["zone_ref"] !=""{
+		if v["zone_ref"] != nil && v["zone_ref"] != "" {
 			ZoneID, ZoneError := GetIDbyRef(v["zone_ref"].(string), ZoneCollection(session))
 
 			if ZoneError != nil {
@@ -231,34 +233,28 @@ func CountSensorGrids(UrlQuery map[string]string, session *mgo.Session) (int, *u
 	return result, Error
 }
 
-
-
-
 func VerifyRefSensorGrid(RefStr string, session *mgo.Session) (bool, *utils.RequestError) {
 	var Error *utils.RequestError
 	var result bool
 	c := SensorGridCollection(session)
-	
-	
-	Ref, _:=strconv.Atoi(RefStr)
-	
-	count,  CountError:=c.Find(bson.M{"ref": Ref}).Count()
-	
+
+	Ref, _ := strconv.Atoi(RefStr)
+
+	count, CountError := c.Find(bson.M{"ref": Ref}).Count()
+
 	if CountError != nil {
-		Error = utils.BadRequestError("Error Ref SensorGrid: "+CountError.Error())
+		Error = utils.BadRequestError("Error Ref SensorGrid: " + CountError.Error())
 		log.WithFields(log.Fields{
 			"message": CountError.Error(),
 		}).Error("SensorGridRefError")
 	}
 
-	if count==1{
-		result=true
+	if count == 1 {
+		result = true
 	}
 
 	return result, Error
 }
-
-
 
 func (sensorGrid *SensorGrid) ByID(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
@@ -345,6 +341,81 @@ func (sensorGrid *SensorGrid) ChangeSecret(ID string, session *mgo.Session) *uti
 	}
 
 	return Error
+}
+
+func (sensorGrid *SensorGrid) ChangeMQTT(ID string, session *mgo.Session) *utils.RequestError {
+	var Error *utils.RequestError
+
+	c := SensorGridCollection(session)
+
+	FindingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).One(sensorGrid)
+
+	if FindingError != nil {
+		log.WithFields(log.Fields{
+			"message": FindingError.Error(),
+			"id":      ID,
+		}).Warn("SensorGridMQTTFindError")
+		return utils.BadRequestError("Error Finding SensorGrid: " + ID)
+
+	}
+
+	if sensorGrid.MQTT {
+
+		DelMQTTError := mqtt.DelUser(sensorGrid.ClientID)
+
+		if DelMQTTError != nil {
+			log.WithFields(log.Fields{
+				"message": DelMQTTError.Error(),
+				"id":      ID,
+			}).Warn("SensorGridDelMQTTError")
+			return utils.BadRequestError("DelMQTTError SensorGrid: " + ID)
+		}
+
+		change := ChangeOneSet("mqtt", false)
+
+		_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &sensorGrid)
+
+		if UpdatingError != nil {
+			Error = utils.BadRequestError("DelMQTTError: " + ID)
+
+			log.WithFields(log.Fields{
+				"message": UpdatingError.Error(),
+				"id":      ID,
+			}).Warn("DelMQTTError")
+		}
+
+	} else {
+		user := map[string]interface{}{}
+		user["username"] = sensorGrid.ClientID
+		user["password"] = sensorGrid.ClientSecret
+		
+		CreateMQTTError := mqtt.CreateUser(user)
+
+		if CreateMQTTError != nil {
+			log.WithFields(log.Fields{
+				"message": CreateMQTTError.Error(),
+				"id":      ID,
+			}).Warn("SensorGridCreateMQTTError")
+			return utils.BadRequestError("CreateMQTTError SensorGrid: " + ID)
+		}
+
+		change := ChangeOneSet("mqtt", true)
+
+		_, UpdatingError := c.Find(bson.M{"_id": bson.ObjectIdHex(ID)}).Apply(change, &sensorGrid)
+
+		if UpdatingError != nil {
+			Error = utils.BadRequestError("CreateMQTTError: " + ID)
+
+			log.WithFields(log.Fields{
+				"message": UpdatingError.Error(),
+				"id":      ID,
+			}).Warn("CreateMQTTError")
+		}
+
+	}
+
+	return Error
+
 }
 
 func (sensorGrid *SensorGrid) SetCommunicationCenter(ID string, Comm map[string]interface{}, session *mgo.Session) *utils.RequestError {

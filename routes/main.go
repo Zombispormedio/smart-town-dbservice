@@ -194,6 +194,9 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 
 				Secret := _default(controllers.ChangeSensorGridSecret)
 				WithID.GET("/secret", middleware.Admin(session.Copy()), Secret)
+				
+				MQTT := _default(controllers.ChangeSensorGridMQTT)
+				WithID.GET("/mqtt", middleware.Admin(session.Copy()), MQTT)
 
 				CommunicationCenter := _default(controllers.SetSensorGridCommunicationCenter)
 				WithID.PUT("/communication_center", middleware.Admin(session.Copy()), middleware.Body(), CommunicationCenter)

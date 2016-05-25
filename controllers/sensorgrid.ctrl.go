@@ -131,6 +131,24 @@ func ChangeSensorGridSecret(c *gin.Context, session *mgo.Session) {
 	}
 }
 
+
+func ChangeSensorGridMQTT(c *gin.Context, session *mgo.Session) {
+
+	defer session.Close()
+	id := c.Param("id")
+
+	sensorGrid := models.SensorGrid{}
+
+	SettingError := sensorGrid.ChangeMQTT(id, session)
+
+	if SettingError == nil {
+		response.Success(c, sensorGrid)
+	} else {
+		response.Error(c, SettingError)
+
+	}
+}
+
 func SetSensorGridCommunicationCenter(c *gin.Context, session *mgo.Session) {
 
 	defer session.Close()
