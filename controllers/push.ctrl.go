@@ -2,7 +2,7 @@ package controllers
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/consumer"
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/store"
 	"github.com/Zombispormedio/smartdb/lib/utils"
@@ -12,7 +12,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func PushCredentialsConfig(consumer *config.Consumer)  func(c *gin.Context)  {
+func PushCredentialsConfig(consumer *consumer.Consumer)  func(c *gin.Context)  {
 	return func(c *gin.Context) {
 		newID, _ := uuid.NewV4()
 		PushID := newID.String()

@@ -9,7 +9,8 @@ const PROD_MAIN="cmd/smartdb/main.go";
 const GODEP="Godeps/Godeps.json";
 const INTERNAL="github.com/Zombispormedio/smartdb/";
 const PACKAGES=[
-  "routes", "config", "models" , "controllers", "middleware", "lib/response", "lib/utils", "lib/struts", "lib/store", "lib/rabbit"
+  "routes", "config", "models" , "controllers", "middleware", "lib/response", "lib/utils", "lib/struts", "lib/store", "lib/rabbit",
+   "consumer"
 ];
 
 fs.writeFileSync(PROD_MAIN, fs.readFileSync(DEV_MAIN));

@@ -1,4 +1,4 @@
-package config
+package consumer
 
 import (
 	"os"
@@ -13,7 +13,7 @@ type Consumer struct {
     
 }
 
-func CreateConsumer() (*Consumer, error) {
+func New() (*Consumer, error) {
 	var Error error
 	consumer := Consumer{}
 

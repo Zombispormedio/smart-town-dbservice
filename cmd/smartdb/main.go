@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/consumer"
 	"github.com/Zombispormedio/smartdb/routes"
 	"github.com/gin-gonic/gin"
 )
@@ -21,13 +22,13 @@ func main() {
 		defer session.Close()
 	}
 
-	rabbit, RabbitError := config.CreateConsumer()
+	rabbit, RabbitError := consumer.New()
 
 	if RabbitError != nil {
 		panic(RabbitError)
 	}
 
-	routes.Set(router, session)
+	routes.Set(router, session, rabbit)
 
 	port := os.Getenv("PORT")
 

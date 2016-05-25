@@ -3,12 +3,12 @@ package routes
 import (
 	"github.com/Zombispormedio/smartdb/controllers"
 	"github.com/Zombispormedio/smartdb/middleware"
-	"github.com/Zombispormedio/smartdb/config"
+	"github.com/Zombispormedio/smartdb/consumer"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
 )
 
-func Set(router *gin.Engine, session *mgo.Session, consumer *config.Consumer) {
+func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) {
 
 	_default := func(fn func(c *gin.Context, session *mgo.Session)) gin.HandlerFunc {
 		return func(c *gin.Context) {
