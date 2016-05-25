@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/Zombispormedio/smartdb/config"
 	"github.com/Zombispormedio/smartdb/consumer"
 	"github.com/Zombispormedio/smartdb/routes"
@@ -22,7 +23,7 @@ func main() {
 		defer session.Close()
 	}
 
-	rabbit, RabbitError := consumer.New()
+	rabbit, RabbitError := consumer.New(routes.Consumer, session)
 
 	if RabbitError != nil {
 		panic(RabbitError)
@@ -35,7 +36,12 @@ func main() {
 	if port == "" {
 		port = "5060"
 	}
+	 go router.Run(":" + port)
+	
+	RabbitRunError := rabbit.Run()
 
-	go router.Run(":" + port)
-	rabbit.Run()
+	if RabbitRunError != nil {
+		log.Error(RabbitRunError)
+	}
+	
 }

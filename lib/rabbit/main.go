@@ -22,6 +22,8 @@ type Rabbit struct {
 	ExType string
 }
 
+type Delivery *amqp.Delivery
+
 func New(exname string, extype string, durable bool) (*Rabbit, error) {
 	var Error error
 	rabbit := Rabbit{}

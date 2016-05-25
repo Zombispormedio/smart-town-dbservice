@@ -67,7 +67,7 @@ func PushSensorRegistry(c *gin.Context, session *mgo.Session) {
 
 	Data := utils.SliceInterfaceToSliceMap(body)
 
-	PushError := models.PushSensorData(Data, session)
+	PushError := models.PushSensorData(session, Data...)
 
 	if PushError == nil {
 		response.SuccessMessage(c, "Perfect Pushover")

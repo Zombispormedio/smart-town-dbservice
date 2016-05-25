@@ -23,7 +23,7 @@ func SensorRegistryCollection(session *mgo.Session) *mgo.Collection {
 	return config.GetDB(session).C("SensorRegistry")
 }
 
-func PushSensorData(Packet []map[string]interface{}, session *mgo.Session) *utils.RequestError {
+func PushSensorData(session *mgo.Session, Packet ...map[string]interface{}) *utils.RequestError {
 	var Error *utils.RequestError
 
 	RegistryC := SensorRegistryCollection(session)
