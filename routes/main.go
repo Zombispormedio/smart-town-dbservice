@@ -149,6 +149,9 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 
 				Shape := _default(controllers.SetZoneShape)
 				WithID.PUT("/shape", middleware.Admin(session.Copy()), middleware.Body(), Shape)
+				
+				Others := _default(controllers.OtherZones)
+				WithID.GET("/others", middleware.Admin(session.Copy()), Others)
 
 			}
 		}

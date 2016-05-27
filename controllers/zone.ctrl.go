@@ -46,11 +46,26 @@ func GetZones(c *gin.Context, session *mgo.Session) {
 
 }
 
+func OtherZones(c *gin.Context, session *mgo.Session) {
+	defer session.Close()
+
+	id := c.Param("id")
+	result := []models.Zone{}
+
+	GetAllError := models.OtherZones(&result, id, session)
+	if GetAllError == nil {
+		response.Success(c, result)
+	} else {
+		response.Error(c, GetAllError)
+	}
+
+}
+
 func CountZones(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
-	keysQueries:=[]string{"search"}
-	queries:=utils.Queries(c, keysQueries)
+	keysQueries := []string{"search"}
+	queries := utils.Queries(c, keysQueries)
 
 	result, CountError := models.CountZones(queries, session)
 	if CountError == nil {
@@ -58,9 +73,8 @@ func CountZones(c *gin.Context, session *mgo.Session) {
 	} else {
 		response.Error(c, CountError)
 	}
-	
-}
 
+}
 
 func DeleteZone(c *gin.Context, session *mgo.Session) {
 
@@ -174,10 +188,6 @@ func SetZoneShape(c *gin.Context, session *mgo.Session) {
 	}
 }
 
-
-
-	
-	
 func VerifyRefZone(c *gin.Context, session *mgo.Session) {
 	defer session.Close()
 
@@ -189,5 +199,5 @@ func VerifyRefZone(c *gin.Context, session *mgo.Session) {
 	} else {
 		response.Error(c, RefError)
 	}
-	
+
 }

@@ -147,6 +147,21 @@ func GetZones(zones *[]Zone, UrlQuery map[string]string, session *mgo.Session) *
 	return Error
 }
 
+func OtherZones(zones *[]Zone, ID string, session *mgo.Session)*utils.RequestError{
+	var Error *utils.RequestError
+	c := ZoneCollection(session)
+	
+	IterError := c.Find(bson.M{"_id":bson.M{"$ne":bson.ObjectIdHex(ID)}}).Iter().All(zones);
+	if IterError != nil {
+		Error = utils.BadRequestError("Error Other Zones")
+		log.WithFields(log.Fields{
+			"message": IterError.Error(),
+		}).Error("ZoneIteratorError")
+	}
+	
+	return Error
+}
+
 func CountZones(UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
 	var Error *utils.RequestError
 	var result int
