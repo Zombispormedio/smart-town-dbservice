@@ -46,7 +46,7 @@ func Body() gin.HandlerFunc {
 
 func Admin(session *mgo.Session) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		defer session.Close();
 		token := c.Request.Header.Get("Authorization")
 
 		if token == "" {
