@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/Zombispormedio/smartdb/controllers"
 	"github.com/Zombispormedio/smartdb/middleware"
+	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/consumer"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
@@ -14,6 +15,21 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 		return func(c *gin.Context) {
 			sessionCopy := session.Copy()
 			fn(c, sessionCopy)
+		}
+	}
+	
+	_defaultAdmin := func(fn func(c *gin.Context, session *mgo.Session)) gin.HandlerFunc {
+		return func(c *gin.Context) {
+			sessionCopy := session.Copy()
+			Error:=middleware.Admin(c, sessionCopy)
+			if Error != nil{
+				sessionCopy.Close()
+				response.Error(c, Error)
+				
+			}else{
+				fn(c, sessionCopy)
+			}
+		
 		}
 	}
 
@@ -33,26 +49,26 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 			login := _default(controllers.Login)
 			oauth.POST("/login", middleware.Body(), login)
 
-			whoiam := _default(controllers.Whoiam)
-			oauth.GET("/whoiam", middleware.Admin(session.Copy()), whoiam)
+			whoiam := _defaultAdmin(controllers.Whoiam)
+			oauth.GET("/whoiam",  whoiam)
 
-			logout := _default(controllers.Logout)
-			oauth.GET("/logout", middleware.Admin(session.Copy()), logout)
+			logout := _defaultAdmin(controllers.Logout)
+			oauth.GET("/logout",  logout)
 
-			DisplayName := _default(controllers.SetOauthDisplayName)
-			oauth.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+			DisplayName := _defaultAdmin(controllers.SetOauthDisplayName)
+			oauth.PUT("/display_name", middleware.Body(), DisplayName)
 
-			Email := _default(controllers.SetOauthEmail)
-			oauth.PUT("/email", middleware.Admin(session.Copy()), middleware.Body(), Email)
+			Email := _defaultAdmin(controllers.SetOauthEmail)
+			oauth.PUT("/email", middleware.Body(), Email)
 
-			Password := _default(controllers.SetOauthPassword)
-			oauth.PUT("/password", middleware.Admin(session.Copy()), middleware.Body(), Password)
+			Password := _defaultAdmin(controllers.SetOauthPassword)
+			oauth.PUT("/password", middleware.Body(), Password)
 
-			Delete := _default(controllers.DeleteOauth)
-			oauth.DELETE("", middleware.Admin(session.Copy()), Delete)
+			Delete := _defaultAdmin(controllers.DeleteOauth)
+			oauth.DELETE("",  Delete)
 
-			Invitate := _default(controllers.Invite)
-			oauth.POST("/invite", middleware.Admin(session.Copy()), middleware.Body(), Invitate)
+			Invitate := _defaultAdmin(controllers.Invite)
+			oauth.POST("/invite",  middleware.Body(), Invitate)
 
 			CheckInvitation := _default(controllers.CheckInvitation)
 			oauth.GET("/invitation/:code", CheckInvitation)
@@ -63,49 +79,49 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 
 		magnitude := api.Group("/magnitude")
 		{
-			Create := _default(controllers.CreateMagnitude)
-			magnitude.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+			Create := _defaultAdmin(controllers.CreateMagnitude)
+			magnitude.POST("", middleware.Body(), Create)
 
 			WithID := magnitude.Group("/:id")
 			{
-				ByID := _default(controllers.GetMagnitudeByID)
-				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+				ByID := _defaultAdmin(controllers.GetMagnitudeByID)
+				WithID.GET("",  ByID)
 
-				Delete := _default(controllers.DeleteMagnitude)
-				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+				Delete := _defaultAdmin(controllers.DeleteMagnitude)
+				WithID.DELETE("",  Delete)
 
-				DisplayName := _default(controllers.SetMagnitudeDisplayName)
-				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+				DisplayName := _defaultAdmin(controllers.SetMagnitudeDisplayName)
+				WithID.PUT("/display_name",middleware.Body(), DisplayName)
 
-				Type := _default(controllers.SetMagnitudeType)
-				WithID.PUT("/type", middleware.Admin(session.Copy()), middleware.Body(), Type)
+				Type := _defaultAdmin(controllers.SetMagnitudeType)
+				WithID.PUT("/type", middleware.Body(), Type)
 
-				Digital := _default(controllers.SetMagnitudeDigitalUnits)
-				WithID.PUT("/digital", middleware.Admin(session.Copy()), middleware.Body(), Digital)
+				Digital := _defaultAdmin(controllers.SetMagnitudeDigitalUnits)
+				WithID.PUT("/digital", middleware.Body(), Digital)
 
 				Analog := WithID.Group("analog")
 				{
-					Add := _default(controllers.AddMagnitudeAnalogUnit)
-					Analog.POST("", middleware.Admin(session.Copy()), middleware.Body(), Add)
+					Add := _defaultAdmin(controllers.AddMagnitudeAnalogUnit)
+					Analog.POST("", middleware.Body(), Add)
 
-					Update := _default(controllers.UpdateMagnitudeAnalogUnit)
-					Analog.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
+					Update := _defaultAdmin(controllers.UpdateMagnitudeAnalogUnit)
+					Analog.PUT("", middleware.Body(), Update)
 
-					Delete := _default(controllers.DeleteMagnitudeAnalogUnit)
-					Analog.DELETE(":analog_id", middleware.Admin(session.Copy()), Delete)
+					Delete := _defaultAdmin(controllers.DeleteMagnitudeAnalogUnit)
+					Analog.DELETE(":analog_id", Delete)
 
 				}
 
 				Conversion := WithID.Group("conversion")
 				{
-					Add := _default(controllers.AddMagnitudeConversion)
-					Conversion.POST("", middleware.Admin(session.Copy()), middleware.Body(), Add)
+					Add := _defaultAdmin(controllers.AddMagnitudeConversion)
+					Conversion.POST("", middleware.Body(), Add)
 
-					Update := _default(controllers.UpdateMagnitudeConversion)
-					Conversion.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
+					Update := _defaultAdmin(controllers.UpdateMagnitudeConversion)
+					Conversion.PUT("", middleware.Body(), Update)
 
-					Delete := _default(controllers.DeleteMagnitudeConversion)
-					Conversion.DELETE(":conversion_id", middleware.Admin(session.Copy()), Delete)
+					Delete := _defaultAdmin(controllers.DeleteMagnitudeConversion)
+					Conversion.DELETE(":conversion_id", Delete)
 				}
 
 			}
@@ -114,118 +130,118 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 
 		magnitudes := api.Group("/magnitudes")
 		{
-			All := _default(controllers.GetMagnitudes)
-			magnitudes.GET("", middleware.Admin(session.Copy()), All)
-			Count := _default(controllers.CountMagnitudes)
-			magnitudes.GET("/count", middleware.Admin(session.Copy()), Count)
+			All := _defaultAdmin(controllers.GetMagnitudes)
+			magnitudes.GET("", All)
+			Count := _defaultAdmin(controllers.CountMagnitudes)
+			magnitudes.GET("/count", Count)
 
-			Ref := _default(controllers.VerifyRefMagnitude)
-			magnitudes.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
+			Ref := _defaultAdmin(controllers.VerifyRefMagnitude)
+			magnitudes.GET("/verify/:ref", Ref)
 
 		}
 
 		zone := api.Group("/zone")
 		{
-			Create := _default(controllers.CreateZone)
-			zone.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+			Create := _defaultAdmin(controllers.CreateZone)
+			zone.POST("", middleware.Body(), Create)
 
 			WithID := zone.Group("/:id")
 			{
 
-				ByID := _default(controllers.GetZoneByID)
-				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+				ByID := _defaultAdmin(controllers.GetZoneByID)
+				WithID.GET("", ByID)
 
-				Delete := _default(controllers.DeleteZone)
-				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+				Delete := _defaultAdmin(controllers.DeleteZone)
+				WithID.DELETE("", Delete)
 
-				DisplayName := _default(controllers.SetZoneDisplayName)
-				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+				DisplayName := _defaultAdmin(controllers.SetZoneDisplayName)
+				WithID.PUT("/display_name", middleware.Body(), DisplayName)
 
-				Description := _default(controllers.SetZoneDescription)
-				WithID.PUT("/description", middleware.Admin(session.Copy()), middleware.Body(), Description)
+				Description := _defaultAdmin(controllers.SetZoneDescription)
+				WithID.PUT("/description", middleware.Body(), Description)
 
-				Keywords := _default(controllers.SetZoneKeywords)
-				WithID.PUT("/keywords", middleware.Admin(session.Copy()), middleware.Body(), Keywords)
+				Keywords := _defaultAdmin(controllers.SetZoneKeywords)
+				WithID.PUT("/keywords", middleware.Body(), Keywords)
 
-				Shape := _default(controllers.SetZoneShape)
-				WithID.PUT("/shape", middleware.Admin(session.Copy()), middleware.Body(), Shape)
+				Shape := _defaultAdmin(controllers.SetZoneShape)
+				WithID.PUT("/shape", middleware.Body(), Shape)
 				
-				Others := _default(controllers.OtherZones)
-				WithID.GET("/others", middleware.Admin(session.Copy()), Others)
+				Others := _defaultAdmin(controllers.OtherZones)
+				WithID.GET("/others", Others)
 
 			}
 		}
 
 		zones := api.Group("/zones")
 		{
-			All := _default(controllers.GetZones)
-			zones.GET("", middleware.Admin(session.Copy()), All)
-			Count := _default(controllers.CountZones)
-			zones.GET("/count", middleware.Admin(session.Copy()), Count)
-			Ref := _default(controllers.VerifyRefZone)
-			zones.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
+			All := _defaultAdmin(controllers.GetZones)
+			zones.GET("", All)
+			Count := _defaultAdmin(controllers.CountZones)
+			zones.GET("/count", Count)
+			Ref := _defaultAdmin(controllers.VerifyRefZone)
+			zones.GET("/verify/:ref", Ref)
 
 		}
 
 		sensorGrids := api.Group("/sensor_grids")
 		{
-			All := _default(controllers.GetSensorGrids)
-			sensorGrids.GET("", middleware.Admin(session.Copy()), All)
-			Count := _default(controllers.CountSensorGrids)
-			sensorGrids.GET("/count", middleware.Admin(session.Copy()), Count)
+			All := _defaultAdmin(controllers.GetSensorGrids)
+			sensorGrids.GET("", All)
+			Count := _defaultAdmin(controllers.CountSensorGrids)
+			sensorGrids.GET("/count", Count)
 
-			Import := _default(controllers.ImportSensorGrids)
-			sensorGrids.POST("/import", middleware.Admin(session.Copy()), middleware.Body(), Import)
+			Import := _defaultAdmin(controllers.ImportSensorGrids)
+			sensorGrids.POST("/import", middleware.Body(), Import)
 
-			Ref := _default(controllers.VerifyRefSensorGrid)
-			sensorGrids.GET("/verify/:ref", middleware.Admin(session.Copy()), Ref)
+			Ref := _defaultAdmin(controllers.VerifyRefSensorGrid)
+			sensorGrids.GET("/verify/:ref", Ref)
 
 		}
 
 		sensorGrid := api.Group("/sensor_grid")
 		{
-			Create := _default(controllers.CreateSensorGrid)
-			sensorGrid.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+			Create := _defaultAdmin(controllers.CreateSensorGrid)
+			sensorGrid.POST("", middleware.Body(), Create)
 
 			WithID := sensorGrid.Group("/:id")
 			{
-				ByID := _default(controllers.GetSensorGridByID)
-				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+				ByID := _defaultAdmin(controllers.GetSensorGridByID)
+				WithID.GET("", ByID)
 
-				Delete := _default(controllers.DeleteSensorGrid)
-				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+				Delete := _defaultAdmin(controllers.DeleteSensorGrid)
+				WithID.DELETE("", Delete)
 
-				Secret := _default(controllers.ChangeSensorGridSecret)
-				WithID.GET("/secret", middleware.Admin(session.Copy()), Secret)
+				Secret := _defaultAdmin(controllers.ChangeSensorGridSecret)
+				WithID.GET("/secret", Secret)
 				
-				MQTT := _default(controllers.ChangeSensorGridMQTT)
-				WithID.GET("/mqtt", middleware.Admin(session.Copy()), MQTT)
+				MQTT := _defaultAdmin(controllers.ChangeSensorGridMQTT)
+				WithID.GET("/mqtt", MQTT)
 
-				CommunicationCenter := _default(controllers.SetSensorGridCommunicationCenter)
-				WithID.PUT("/communication_center", middleware.Admin(session.Copy()), middleware.Body(), CommunicationCenter)
+				CommunicationCenter := _defaultAdmin(controllers.SetSensorGridCommunicationCenter)
+				WithID.PUT("/communication_center", middleware.Body(), CommunicationCenter)
 
-				DisplayName := _default(controllers.SetSensorGridDisplayName)
-				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+				DisplayName := _defaultAdmin(controllers.SetSensorGridDisplayName)
+				WithID.PUT("/display_name", middleware.Body(), DisplayName)
 
-				Zone := _default(controllers.SetSensorGridZone)
-				WithID.PUT("/zone", middleware.Admin(session.Copy()), middleware.Body(), Zone)
+				Zone := _defaultAdmin(controllers.SetSensorGridZone)
+				WithID.PUT("/zone", middleware.Body(), Zone)
 
-				AllowAccess := _default(controllers.AllowAccessSensorGrid)
-				WithID.GET("/access", middleware.Admin(session.Copy()), AllowAccess)
+				AllowAccess := _defaultAdmin(controllers.AllowAccessSensorGrid)
+				WithID.GET("/access", AllowAccess)
 
-				Location := _default(controllers.SetSensorGridLocation)
-				WithID.PUT("/location", middleware.Admin(session.Copy()), middleware.Body(), Location)
+				Location := _defaultAdmin(controllers.SetSensorGridLocation)
+				WithID.PUT("/location", middleware.Body(), Location)
 
 				sensors := WithID.Group("/sensors")
 				{
-					AllSensors := _default(controllers.GetSensors)
-					sensors.GET("", middleware.Admin(session.Copy()), AllSensors)
+					AllSensors := _defaultAdmin(controllers.GetSensors)
+					sensors.GET("", AllSensors)
 
-					Count := _default(controllers.CountSensors)
-					sensors.GET("/count", middleware.Admin(session.Copy()), Count)
+					Count := _defaultAdmin(controllers.CountSensors)
+					sensors.GET("/count", Count)
 
-					DelSensor := _default(controllers.DeleteSensorByGrid)
-					sensors.DELETE("/:sensor_id", middleware.Admin(session.Copy()), DelSensor)
+					DelSensor := _defaultAdmin(controllers.DeleteSensorByGrid)
+					sensors.DELETE("/:sensor_id", DelSensor)
 				}
 
 			}
@@ -234,52 +250,52 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 		sensors := api.Group("/sensors")
 		{
 
-			Import := _default(controllers.ImportSensors)
-			sensors.POST("/import", middleware.Admin(session.Copy()), middleware.Body(), Import)
+			Import := _defaultAdmin(controllers.ImportSensors)
+			sensors.POST("/import", middleware.Body(), Import)
 
-			Notifications := _default(controllers.SensorsNotifications)
-			sensors.GET("/notifications", middleware.Admin(session.Copy()), Notifications)
+			Notifications := _defaultAdmin(controllers.SensorsNotifications)
+			sensors.GET("/notifications", Notifications)
 
 		}
 
 		sensor := api.Group("/sensor")
 		{
-			Create := _default(controllers.CreateSensor)
-			sensor.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
+			Create := _defaultAdmin(controllers.CreateSensor)
+			sensor.POST("", middleware.Body(), Create)
 
 			WithID := sensor.Group("/:id")
 			{
-				ByID := _default(controllers.GetSensorByID)
-				WithID.GET("", middleware.Admin(session.Copy()), ByID)
+				ByID := _defaultAdmin(controllers.GetSensorByID)
+				WithID.GET("", ByID)
 
-				Transmissor := _default(controllers.SetSensorTransmissor)
-				WithID.PUT("/transmissor", middleware.Admin(session.Copy()), middleware.Body(), Transmissor)
+				Transmissor := _defaultAdmin(controllers.SetSensorTransmissor)
+				WithID.PUT("/transmissor", middleware.Body(), Transmissor)
 
-				DisplayName := _default(controllers.SetSensorDisplayName)
-				WithID.PUT("/display_name", middleware.Admin(session.Copy()), middleware.Body(), DisplayName)
+				DisplayName := _defaultAdmin(controllers.SetSensorDisplayName)
+				WithID.PUT("/display_name", middleware.Body(), DisplayName)
 
-				Magnitude := _default(controllers.SetSensorMagnitude)
-				WithID.PUT("/magnitude", middleware.Admin(session.Copy()), middleware.Body(), Magnitude)
+				Magnitude := _defaultAdmin(controllers.SetSensorMagnitude)
+				WithID.PUT("/magnitude", middleware.Body(), Magnitude)
 
-				Fix := _default(controllers.FixSensor)
-				WithID.GET("/fix", middleware.Admin(session.Copy()), Fix)
+				Fix := _defaultAdmin(controllers.FixSensor)
+				WithID.GET("/fix", Fix)
 			}
 
 		}
 
 		task := api.Group("/task")
 		{
-			Create := _default(controllers.CreateTask)
-			task.POST("", middleware.Admin(session.Copy()), middleware.Body(), Create)
-			All := _default(controllers.GetTasks)
-			task.GET("", middleware.Admin(session.Copy()), All)
+			Create := _defaultAdmin(controllers.CreateTask)
+			task.POST("", middleware.Body(), Create)
+			All := _defaultAdmin(controllers.GetTasks)
+			task.GET("", All)
 
 			WithID := task.Group("/:id")
 			{
-				Update := _default(controllers.UpdateTask)
-				WithID.PUT("", middleware.Admin(session.Copy()), middleware.Body(), Update)
-				Delete := _default(controllers.DeleteTask)
-				WithID.DELETE("", middleware.Admin(session.Copy()), Delete)
+				Update := _defaultAdmin(controllers.UpdateTask)
+				WithID.PUT("", middleware.Body(), Update)
+				Delete := _defaultAdmin(controllers.DeleteTask)
+				WithID.DELETE("", Delete)
 			}
 
 		}

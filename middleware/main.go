@@ -7,10 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
-
+	
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/store"
 	"github.com/Zombispormedio/smartdb/models"
+	"github.com/Zombispormedio/smartdb/lib/utils"
 )
 
 func Secret() gin.HandlerFunc {
@@ -44,28 +45,29 @@ func Body() gin.HandlerFunc {
 	}
 }
 
-func Admin(session *mgo.Session) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func Admin(c *gin.Context, session *mgo.Session) *utils.RequestError {
+
+		var Error *utils.RequestError
 		
 		token := c.Request.Header.Get("Authorization")
 
 		if token == "" {
-			response.ErrorByString(c, 403, "No Authorization: Empty Token")
-			return
+			return utils.NoAuthError("No Authorization: Empty Token")
 		}
 
 		user, err := models.SessionToken(token, session)
 
 		if err != nil {
-			response.Error(c, err)
-			return
+		
+			return err
 		}
 
 		c.Set("user", user)
 
-		c.Next()
+		
 
-	}
+		return Error
+	
 
 }
 
