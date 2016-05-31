@@ -1,12 +1,11 @@
 package controllers
 
 import (
-	"github.com/Zombispormedio/smartdb/models"
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/utils"
+	"github.com/Zombispormedio/smartdb/models"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
-	
 )
 
 func Register(c *gin.Context, session *mgo.Session) {
@@ -187,16 +186,15 @@ func CheckInvitation(c *gin.Context, session *mgo.Session) {
 	code := c.Param("code")
 
 	checked, CheckingError := models.CheckInvitation(code, session)
-	
+
 	if CheckingError == nil {
 		response.Success(c, map[string]bool{
-			"success":checked,
+			"success": checked,
 		})
 	} else {
 		response.Error(c, CheckingError)
 
 	}
-
 
 }
 
@@ -207,14 +205,14 @@ func Invitation(c *gin.Context, session *mgo.Session) {
 	bodyInterface, _ := c.Get("body")
 	body := utils.InterfaceToMap(bodyInterface)
 	password := body["password"].(string)
-	
+
 	AcceptedError := models.AcceptInvitation(code, password, session)
-	
+
 	if AcceptedError == nil {
 		response.SuccessMessage(c, "Congratulations, Your are in!")
 	} else {
 		response.Error(c, AcceptedError)
 
 	}
-	
+
 }

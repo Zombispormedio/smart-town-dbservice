@@ -1,17 +1,16 @@
 package middleware
 
 import (
-
 	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2"
-	
+
 	"github.com/Zombispormedio/smartdb/lib/response"
 	"github.com/Zombispormedio/smartdb/lib/store"
-	"github.com/Zombispormedio/smartdb/models"
 	"github.com/Zombispormedio/smartdb/lib/utils"
+	"github.com/Zombispormedio/smartdb/models"
 )
 
 func Secret() gin.HandlerFunc {
@@ -47,27 +46,24 @@ func Body() gin.HandlerFunc {
 
 func Admin(c *gin.Context, session *mgo.Session) *utils.RequestError {
 
-		var Error *utils.RequestError
-		
-		token := c.Request.Header.Get("Authorization")
+	var Error *utils.RequestError
 
-		if token == "" {
-			return utils.NoAuthError("No Authorization: Empty Token")
-		}
+	token := c.Request.Header.Get("Authorization")
 
-		user, err := models.SessionToken(token, session)
+	if token == "" {
+		return utils.NoAuthError("No Authorization: Empty Token")
+	}
 
-		if err != nil {
-		
-			return err
-		}
+	user, err := models.SessionToken(token, session)
 
-		c.Set("user", user)
+	if err != nil {
 
-		
+		return err
+	}
 
-		return Error
-	
+	c.Set("user", user)
+
+	return Error
 
 }
 
@@ -76,22 +72,20 @@ func PushService() gin.HandlerFunc {
 
 		token := c.Request.Header.Get("Authorization")
 		var auth string
-		Error:=store.Get("push_identifier", "Config", func(value string){
-			auth=value
+		Error := store.Get("push_identifier", "Config", func(value string) {
+			auth = value
 		})
-		
-		if Error== nil{
-			if auth == token{
+
+		if Error == nil {
+			if auth == token {
 				c.Next()
-			}else{
+			} else {
 				response.ErrorByString(c, 403, "No Authorization")
 			}
-			
-		}else{
+
+		} else {
 			response.ErrorByString(c, 403, "No Authorization")
 		}
-		
-		
 
 	}
 }
