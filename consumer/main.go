@@ -107,7 +107,7 @@ func (consumer *Consumer) Run() error {
 	go func() {
 		for msg := range msgs {
 			deliver := Deliver{}
-
+			log.Info(string(msg.Body))
 			deliver.Consumer = consumer
 			deliver.Delivery = &msg
 			RouteError := consumer.Routing(&deliver)
