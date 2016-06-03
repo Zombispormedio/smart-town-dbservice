@@ -38,6 +38,7 @@ func main() {
 	}
 
 	if os.Getenv("RABBIT") != "NO" {
+
 		go router.Run(":" + port)
 
 		RabbitRunError := rabbit.Run()
@@ -46,7 +47,7 @@ func main() {
 			log.Error(RabbitRunError)
 		}
 
-	}else{
+	} else {
 		router.Run(":" + port)
 	}
 
