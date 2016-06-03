@@ -41,11 +41,11 @@ func SensorGridCollection(session *mgo.Session) *mgo.Collection {
 
 func SearchSensorGridQuery(search string) bson.M {
 	or := []bson.M{
-		bson.M{"display_name": bson.M{"$regex": search}},
-		bson.M{"ref": bson.M{"$regex": search}},
-		bson.M{"description": bson.M{"$regex": search}},
-		bson.M{"device_name": bson.M{"$regex": search}},
-		bson.M{"client_id": bson.M{"$regex": search}},
+		bson.M{"display_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"ref": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"description": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"device_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"client_id": bson.M{"$regex": search, "$options":"i"}},
 		bson.M{"location": search},
 	}
 

@@ -47,11 +47,11 @@ func ZoneCollection(session *mgo.Session) *mgo.Collection {
 
 func SearchZoneQuery(search string) bson.M {
 	or := []bson.M{
-		bson.M{"display_name": bson.M{"$regex": search}},
+		bson.M{"display_name": bson.M{"$regex": search, "$options":"i"}},
 		bson.M{"ref": bson.M{"$regex": search}},
-		bson.M{"description": bson.M{"$regex": search}},
-		bson.M{"keywords": bson.M{"$regex": search}},
-		bson.M{"shape.type": bson.M{"$regex": search}},
+		bson.M{"description": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"keywords": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"shape.type": bson.M{"$regex": search, "$options":"i"}},
 		bson.M{"center": search},
 		bson.M{"shape.radius": search},
 		bson.M{"shape.center": search},

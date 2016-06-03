@@ -101,14 +101,14 @@ func (magnitude *Magnitude) New(obj map[string]interface{}, userID string, sessi
 
 func SearchMagnitudeQuery(search string) bson.M {
 	or := []bson.M{
-		bson.M{"display_name": bson.M{"$regex": search}},
-		bson.M{"ref": bson.M{"$regex": search}},
-		bson.M{"analog_units.display_name": bson.M{"$regex": search}},
-		bson.M{"analog_units.symbol": bson.M{"$regex": search}},
-		bson.M{"conversion.display_name": bson.M{"$regex": search}},
-		bson.M{"conversion.operation": bson.M{"$regex": search}},
-		bson.M{"digital_units.on": bson.M{"$regex": search}},
-		bson.M{"digital_units.off": bson.M{"$regex": search}},
+		bson.M{"display_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"ref": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"analog_units.display_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"analog_units.symbol": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"conversion.display_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"conversion.operation": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"digital_units.on": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"digital_units.off": bson.M{"$regex": search, "$options":"i"}},
 	}
 
 	if bson.IsObjectIdHex(search) {
