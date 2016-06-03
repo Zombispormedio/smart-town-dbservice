@@ -178,7 +178,7 @@ func GetSensorGrids(sensorGrids *[]SensorGrid, UrlQuery map[string]string, sessi
 
 	var iter *mgo.Iter
 
-	q := c.Find(query)
+	q := c.Find(query).Sort("ref")
 
 	if UrlQuery["p"] != "" {
 		p, _ := strconv.Atoi(UrlQuery["p"])

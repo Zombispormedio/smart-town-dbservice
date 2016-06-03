@@ -74,7 +74,7 @@ func GetTasks(tasks *[]Task, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := TaskCollection(session)
 
-	iter := c.Find(nil).Iter()
+	iter := c.Find(nil).Sort("ref").Iter()
 
 	IterError := iter.All(tasks)
 

@@ -138,7 +138,7 @@ func GetMagnitudes(magnitudes *[]Magnitude, UrlQuery map[string]string, session 
 
 	var iter *mgo.Iter
 
-	q := c.Find(query).Select(bson.M{"units": 0, "conversions": 0})
+	q := c.Find(query).Sort("ref").Select(bson.M{"units": 0, "conversions": 0})
 
 	if UrlQuery["p"] != "" {
 		p, _ := strconv.Atoi(UrlQuery["p"])

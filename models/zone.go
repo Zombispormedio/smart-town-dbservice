@@ -118,7 +118,7 @@ func GetZones(zones *[]Zone, UrlQuery map[string]string, session *mgo.Session) *
 
 	var iter *mgo.Iter
 
-	q := c.Find(query)
+	q := c.Find(query).Sort("ref")
 
 	if UrlQuery["p"] != "" {
 		p, _ := strconv.Atoi(UrlQuery["p"])
