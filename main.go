@@ -36,12 +36,18 @@ func main() {
 	if port == "" {
 		port = "5060"
 	}
-	 go router.Run(":" + port)
-	
-	RabbitRunError := rabbit.Run()
 
-	if RabbitRunError != nil {
-		log.Error(RabbitRunError)
+	if os.Getenv("RABBIT") != "NO" {
+		go router.Run(":" + port)
+
+		RabbitRunError := rabbit.Run()
+
+		if RabbitRunError != nil {
+			log.Error(RabbitRunError)
+		}
+
+	}else{
+		router.Run(":" + port)
 	}
-	
+
 }
