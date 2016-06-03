@@ -12,32 +12,37 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func PushCredentialsConfig(consumer *consumer.Consumer)  func(c *gin.Context)  {
+func PushCredentialsConfig(consumer *consumer.Consumer) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		newID, _ := uuid.NewV4()
-		PushID := newID.String()
 
-		Error := store.Put("push_identifier", PushID, "Config")
-
-		if Error == nil {
-
-			ResponseData := struct {
-				Key string `json:"key"`
-			}{
-				PushID,
-			}
-
-			response.Success(c, ResponseData)
-			
-			consumer.ReBind()
-			
-
+		if consumer == nil {
+			response.ErrorByString(c, 404, "No rabbit here")
 		} else {
-			log.WithFields(log.Fields{
-				"message": Error.Error(),
-			}).Error("PushCredentialsConfigError")
 
-			response.ErrorByString(c, 404, "Error storing new key")
+			newID, _ := uuid.NewV4()
+			PushID := newID.String()
+
+			Error := store.Put("push_identifier", PushID, "Config")
+
+			if Error == nil {
+
+				ResponseData := struct {
+					Key string `json:"key"`
+				}{
+					PushID,
+				}
+
+				response.Success(c, ResponseData)
+
+				consumer.ReBind()
+
+			} else {
+				log.WithFields(log.Fields{
+					"message": Error.Error(),
+				}).Error("PushCredentialsConfigError")
+
+				response.ErrorByString(c, 404, "Error storing new key")
+			}
 		}
 	}
 

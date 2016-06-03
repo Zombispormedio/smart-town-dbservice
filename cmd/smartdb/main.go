@@ -23,25 +23,34 @@ func main() {
 		defer session.Close()
 	}
 
-	rabbit, RabbitError := consumer.New(routes.Consumer, session)
-
-	if RabbitError != nil {
-		panic(RabbitError)
-	}
-
-	routes.Set(router, session, rabbit)
-
 	port := os.Getenv("PORT")
 
 	if port == "" {
 		port = "5060"
 	}
-	 go router.Run(":" + port)
-	
-	RabbitRunError := rabbit.Run()
 
-	if RabbitRunError != nil {
-		log.Error(RabbitRunError)
+	if os.Getenv("IS_RABBIT") != "NO" {
+
+		rabbit, RabbitError := consumer.New(routes.Consumer, session)
+
+		if RabbitError != nil {
+			panic(RabbitError)
+		}
+
+		routes.Set(router, session, rabbit)
+
+		go router.Run(":" + port)
+
+		RabbitRunError := rabbit.Run()
+
+		if RabbitRunError != nil {
+			log.Error(RabbitRunError)
+		}
+	} else {
+
+		routes.Set(router, session, nil)
+
+		router.Run(":" + port)
 	}
-	
+
 }
