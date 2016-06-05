@@ -46,12 +46,12 @@ func SensorCollection(session *mgo.Session) *mgo.Collection {
 
 func SearchSensorQuery(search string) bson.M {
 	or := []bson.M{
-		bson.M{"display_name": bson.M{"$regex": search, "$options":"i"}},
-		bson.M{"ref": bson.M{"$regex": search, "$options":"i"}},
-		bson.M{"description": bson.M{"$regex": search, "$options":"i"}},
-		bson.M{"device_name": bson.M{"$regex": search, "$options":"i"}},
-		bson.M{"node_id": bson.M{"$regex": search, "$options":"i"}},
-		bson.M{"device_name": bson.M{"$regex": search, "$options":"i"}},
+		bson.M{"display_name": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"ref": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"description": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"device_name": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"node_id": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"device_name": bson.M{"$regex": search, "$options": "i"}},
 	}
 
 	if bson.IsObjectIdHex(search) {
@@ -118,8 +118,6 @@ func (sensor *Sensor) Init(userID string, session *mgo.Session) error {
 	sensor.CreatedAt = bson.Now()
 	sensor.CreatedBy = bson.ObjectIdHex(userID)
 
-
-
 	c := SensorCollection(session)
 
 	var RefError error
@@ -134,7 +132,7 @@ func ImportSensors(sensors []map[string]interface{}, userID string, session *mgo
 	var Error *utils.RequestError
 	c := SensorCollection(session)
 	for _, v := range sensors {
-		
+
 		sensor := Sensor{}
 		RefError := sensor.Init(userID, session)
 
@@ -154,12 +152,12 @@ func ImportSensors(sensors []map[string]interface{}, userID string, session *mgo
 		if v["device_name"] != nil {
 			sensor.DeviceName = v["device_name"].(string)
 		}
-		
+
 		if v["is_raw_data"] != nil {
-			sensor.IsRawData,_=strconv.ParseBool(v["is_raw_data"].(string))
-			
-			if sensor.IsRawData && v["raw_conversion"]!=nil{
-				sensor.RawConversion=v["raw_conversion"].(string)
+			sensor.IsRawData, _ = strconv.ParseBool(v["is_raw_data"].(string))
+
+			if sensor.IsRawData && v["raw_conversion"] != nil {
+				sensor.RawConversion = v["raw_conversion"].(string)
 			}
 		}
 
@@ -195,7 +193,7 @@ func ImportSensors(sensors []map[string]interface{}, userID string, session *mgo
 				}).Error("SensorGridSensorInsertError")
 			}
 		}
-		
+
 		InsertError := c.Insert(sensor)
 
 		if InsertError != nil {
@@ -258,26 +256,24 @@ func GetSensors(sensors *[]Sensor, sensorGrid string, UrlQuery map[string]string
 func SensorsNotifications(sensors *[]Sensor, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorCollection(session)
-	
-	IterError :=  c.Find(bson.M{"notify":true}).Iter().All(sensors)
-	
+
+	IterError := c.Find(bson.M{"notify": true}).Iter().All(sensors)
+
 	if IterError != nil {
 		Error = utils.BadRequestError("Error Sensors Notifications")
 		log.WithFields(log.Fields{
 			"message": IterError.Error(),
 		}).Error("SensorsNotificationsIteratorError")
 	}
-	
+
 	return Error
 }
 
 func FixSensor(ID string, session *mgo.Session) *utils.RequestError {
 	var Error *utils.RequestError
 	c := SensorCollection(session)
-	
 
-
-	UpdatingError:=c.UpdateId(bson.ObjectIdHex(ID), bson.M{"$set": bson.M{"notify":false}})
+	UpdatingError := c.UpdateId(bson.ObjectIdHex(ID), bson.M{"$set": bson.M{"notify": false}})
 
 	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Updating Sensor: " + ID)
@@ -286,10 +282,9 @@ func FixSensor(ID string, session *mgo.Session) *utils.RequestError {
 			"id":      ID,
 		}).Warn("SensorTransmissorUpdateError")
 	}
-	
+
 	return Error
 }
-
 
 func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Session) (int, *utils.RequestError) {
 	var Error *utils.RequestError
@@ -419,45 +414,42 @@ func (sensor *Sensor) SetMagnitude(ID string, Magnitude map[string]interface{}, 
 	return Error
 }
 
-
 func ReviewSensorLastSync(session *mgo.Session) *utils.RequestError {
-		var Error *utils.RequestError
-		
-		c := SensorCollection(session)
-		now:=time.Now()
-		LessThreHours:=now.Add(time.Hour*3)
-		start:=time.Date(2016, time.January, 1, 0,0,0,0, time.UTC)
-		
-		
-		query:=bson.M{
-			
-			"$and":[]bson.M{
-				bson.M{
-					"last_sync":bson.M{"$lte":now},
-				},
-				bson.M{
-					"last_sync":bson.M{"$gte":start},
-				},
-				bson.M{
-					"last_sync":bson.M{"$lte":LessThreHours},
-				},
-				bson.M{
-					"notify":false,
-				},
+	var Error *utils.RequestError
+
+	c := SensorCollection(session)
+	now := time.Now()
+	LessThreeHours := now.Add(-time.Hour * 3)
+	start := time.Date(2016, time.January, 1, 0, 0, 0, 0, time.UTC)
+	log.Info(LessThreeHours)
+	query := bson.M{
+
+		"$and": []bson.M{
+			bson.M{
+				"last_sync": bson.M{"$gte": start},
 			},
-			
-		}
-		
-		_,UpdatingError:=c.UpdateAll(query, bson.M{"$set":bson.M{"notify":true}})
-		
-		if UpdatingError != nil {
+			bson.M{
+				"last_sync": bson.M{"$lte": LessThreeHours},
+			},
+			bson.M{
+				"notify": false,
+			},
+		},
+	}
+
+	sensors := Sensor{}
+
+	c.Find(query).One(&sensors)
+	log.Info(sensors)
+
+	_, UpdatingError := c.UpdateAll(query, bson.M{"$set": bson.M{"notify": true}})
+
+	if UpdatingError != nil {
 		Error = utils.BadRequestError("Error Review Sensors")
 		log.WithFields(log.Fields{
 			"message": UpdatingError.Error(),
-	
 		}).Warn("SensorReviewError")
 	}
-		
-		
-		return Error
+
+	return Error
 }
