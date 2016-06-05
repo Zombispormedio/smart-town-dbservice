@@ -314,6 +314,16 @@ func Set(router *gin.Engine, session *mgo.Session, consumer *consumer.Consumer) 
 		push.POST("/sensor_grid/check", middleware.Body(), CheckSensorGrid)
 
 	}
+	
+	taskOp := router.Group("/task", middleware.Task())
+	{
+
+		ReviewLastSync:= _default(controllers.ReviewLastSync)
+		taskOp.GET("/last_sync", ReviewLastSync)
+
+	
+
+	}
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(404,

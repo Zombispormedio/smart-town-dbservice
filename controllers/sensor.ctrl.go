@@ -192,3 +192,17 @@ func FixSensor(c *gin.Context, session *mgo.Session){
 		session.Close()
 	}
 }
+
+func ReviewLastSync(c *gin.Context, session *mgo.Session){
+	defer session.Close()
+	
+	
+	ReviewError := models.ReviewSensorLastSync(session)
+
+	if ReviewError == nil {
+		response.SuccessMessage(c, "Review Successful")
+	} else {
+		response.Error(c, ReviewError)
+		
+	}
+}

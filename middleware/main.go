@@ -89,3 +89,24 @@ func PushService() gin.HandlerFunc {
 
 	}
 }
+
+func Task()  gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+
+		headerAuth := c.Request.Header.Get("Authorization")
+		queryAuth := c.Query("authorization")
+
+		if (headerAuth != "" && headerAuth == os.Getenv("TASK_SECRET")) || (queryAuth != "" && queryAuth == os.Getenv("TASK_SECRET")) {
+
+			c.Next()
+
+		} else {
+
+			response.ErrorByString(c, 403, "No Authorization")
+
+		}
+
+
+	}
+}

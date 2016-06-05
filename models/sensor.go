@@ -413,8 +413,51 @@ func (sensor *Sensor) SetMagnitude(ID string, Magnitude map[string]interface{}, 
 		log.WithFields(log.Fields{
 			"message": UpdatingError.Error(),
 			"id":      ID,
-		}).Warn("SensorMagnitudeUpdateError")
+		}).Warn("SensorFixError")
 	}
 
 	return Error
+}
+
+
+func ReviewSensorLastSync(session *mgo.Session) *utils.RequestError {
+		var Error *utils.RequestError
+		
+		c := SensorCollection(session)
+		now:=time.Now()
+		LessThreHours:=now.Add(time.Hour*3)
+		start:=time.Date(2016, time.January, 1, 0,0,0,0, time.UTC)
+		
+		
+		query:=bson.M{
+			
+			"$and":[]bson.M{
+				bson.M{
+					"last_sync":bson.M{"$lte":now},
+				},
+				bson.M{
+					"last_sync":bson.M{"$gte":start},
+				},
+				bson.M{
+					"last_sync":bson.M{"$lte":LessThreHours},
+				},
+				bson.M{
+					"notify":false,
+				},
+			},
+			
+		}
+		
+		_,UpdatingError:=c.UpdateAll(query, bson.M{"$set":bson.M{"notify":true}})
+		
+		if UpdatingError != nil {
+		Error = utils.BadRequestError("Error Review Sensors")
+		log.WithFields(log.Fields{
+			"message": UpdatingError.Error(),
+	
+		}).Warn("SensorReviewError")
+	}
+		
+		
+		return Error
 }
