@@ -117,7 +117,8 @@ func (sensor *Sensor) Init(userID string, session *mgo.Session) error {
 	sensor.NodeID = newID.String()
 	sensor.CreatedAt = bson.Now()
 	sensor.CreatedBy = bson.ObjectIdHex(userID)
-	sensor.LastSync=nil;
+
+
 
 	c := SensorCollection(session)
 
