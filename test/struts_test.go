@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"time"
-
+"testing"
 	"github.com/Zombispormedio/smartdb/models"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -134,7 +134,7 @@ func FillByMap(Obj interface{}, Worker reflect.Value, Map map[string]interface{}
 
 }
 
-func main() {
+func TestMain(m *testing.T) {
 	Map := map[string]interface{}{
 		"_id":          "57029d57c479e0beff645e9c",
 		"display_name": "ghjndsd",
@@ -180,6 +180,6 @@ func main() {
 
 	FillByMap(Struct, reflect.ValueOf(&Struct).Elem(), Map, "json")
 
-	fmt.Println(Struct)
+	m.Log(Struct)
 
 }
