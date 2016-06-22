@@ -1,3 +1,2 @@
-# smart-town-dbservice
-## Data Store Layer
-HTTP Server in Go using MongoDB for Smart Town
+## Data Store Layer for Smart Town project
+HTTP Server in Go using MongoDB
