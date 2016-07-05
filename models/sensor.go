@@ -225,7 +225,7 @@ func GetSensors(sensors *[]Sensor, sensorGrid string, UrlQuery map[string]string
 
 	query["sensor_grid"] = bson.ObjectIdHex(sensorGrid)
 
-	log.Info(query)
+	
 	var iter *mgo.Iter
 
 	q := c.Find(query).Sort("ref")
@@ -305,7 +305,7 @@ func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Se
 	}
 
 	query["sensor_grid"] = bson.ObjectIdHex(sensorGrid)
-		log.Info(query)
+	
 
 	var CountError error
 	result, CountError = c.Find(query).Count()
