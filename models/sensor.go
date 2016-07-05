@@ -51,7 +51,6 @@ func SearchSensorQuery(search string) bson.M {
 		bson.M{"description": bson.M{"$regex": search, "$options": "i"}},
 		bson.M{"device_name": bson.M{"$regex": search, "$options": "i"}},
 		bson.M{"node_id": bson.M{"$regex": search, "$options": "i"}},
-		bson.M{"device_name": bson.M{"$regex": search, "$options": "i"}},
 	}
 
 	if bson.IsObjectIdHex(search) {
