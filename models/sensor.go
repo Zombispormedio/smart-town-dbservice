@@ -45,12 +45,13 @@ func SensorCollection(session *mgo.Session) *mgo.Collection {
 }
 
 func SearchSensorQuery(search string) bson.M {
+
 	or := []bson.M{
 		bson.M{"display_name": bson.M{"$regex": search, "$options": "i"}},
 		bson.M{"ref": bson.M{"$regex": search, "$options": "i"}},
 		bson.M{"description": bson.M{"$regex": search, "$options": "i"}},
 		bson.M{"device_name": bson.M{"$regex": search, "$options": "i"}},
-		bson.M{"node_id": bson.M{"$regex": search, "$options": "i"}},
+		bson.M{"node_id": search},
 	}
 
 	if bson.IsObjectIdHex(search) {
@@ -214,13 +215,17 @@ func GetSensors(sensors *[]Sensor, sensorGrid string, UrlQuery map[string]string
 
 	if UrlQuery["search"] != "" {
 		search := UrlQuery["search"]
-		query = SearchSensorGridQuery(search)
+		
+		query = SearchSensorQuery(search)
 	} else {
 		query = bson.M{}
 	}
 
+
+
 	query["sensor_grid"] = bson.ObjectIdHex(sensorGrid)
 
+	log.Info(query)
 	var iter *mgo.Iter
 
 	q := c.Find(query).Sort("ref")
@@ -300,9 +305,11 @@ func CountSensors(sensorGrid string, UrlQuery map[string]string, session *mgo.Se
 	}
 
 	query["sensor_grid"] = bson.ObjectIdHex(sensorGrid)
+		log.Info(query)
 
 	var CountError error
 	result, CountError = c.Find(query).Count()
+
 
 	if CountError != nil {
 		Error = utils.BadRequestError("Error Count Sensors")
